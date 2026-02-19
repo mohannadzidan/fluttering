@@ -30,7 +30,7 @@
 
 **Purpose**: Install the new drag-and-drop dependency before any source changes.
 
-- [x] T001 Install `@dnd-kit/core` and `@dnd-kit/utilities` by running `pnpm --filter web add @dnd-kit/core @dnd-kit/utilities` from repo root
+- [x] T001 Install `@dnd-kit/react` and `@dnd-kit/utilities` by running `pnpm --filter web add @dnd-kit/react @dnd-kit/utilities` from repo root
 
 ---
 
@@ -76,7 +76,7 @@
 - [x] T013 [P] [US2] Create `apps/web/src/features/feature-flags/components/flag-list/flag-move-to-menu.tsx` — a Popover + Command (shadcn/ui combobox) that lists eligible boolean parent flags as searchable options; props: `candidates: AnyFlag[]`, `onSelect: (parentId: string) => void`; check/install shadcn `popover` and `command` components via `pnpm dlx shadcn@latest add popover command` if not already present
 - [x] T014 [P] [US2] Update `apps/web/src/features/feature-flags/components/flag-list/flag-create-row.tsx` to accept an optional `parentId?: string | null` prop and pass it to the `addFlag` store call so new flags can be created as children
 - [x] T015 [US2] Update `apps/web/src/features/feature-flags/components/flag-list/flag-menu.tsx` to: add "Add child flag" item (visible only when `flag.type === "boolean"`) calling `onAddChild`; add "Move to…" item (all flags) rendering `FlagMoveToMenu` with pre-filtered `candidates`; add "Detach from parent" item (visible only when `flag.parentId !== null`) calling `onDetach`; pass new props `onAddChild`, `onDetach`, `onMoveTo`, `projectFlags`, `flag` into the component
-- [x] T016 [US2] Update `apps/web/src/features/feature-flags/components/flag-list/flag-row.tsx` to add `@dnd-kit/core` drag hooks: `useDraggable({ id: flag.id })` and `useDroppable({ id: flag.id, disabled: flag.type !== "boolean" })`; apply `CSS.Transform.toString(transform)` as an inline `style` when dragging (dynamic — must be inline); merge drag and drop refs onto the row container
+- [x] T016 [US2] Update `apps/web/src/features/feature-flags/components/flag-list/flag-row.tsx` to add `@dnd-kit/react` drag hooks: `useDraggable({ id: flag.id })` and `useDroppable({ id: flag.id, disabled: flag.type !== "boolean" })`; apply `CSS.Transform.toString(transform)` as an inline `style` when dragging (dynamic — must be inline); merge drag and drop refs onto the row container
 - [x] T017 [US2] Update `apps/web/src/features/feature-flags/components/flag-list/flag-list.tsx` to: wrap the row list in `<DndContext onDragEnd={handleDragEnd}>`; implement `handleDragEnd` to call `setFlagParent` when a valid drop occurs (target is boolean, not a descendant of dragged flag); wire `onAddChild` to set inline-create state with `parentId`; wire `onMoveTo` to call `setFlagParent(projectId, flagId, parentId)`
 
 **Checkpoint**: Assign via drag-and-drop and "Move to…" menu both work. Direct reparenting A→B works in one action ✅

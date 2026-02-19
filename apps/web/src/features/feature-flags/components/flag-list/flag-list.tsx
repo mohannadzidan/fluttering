@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { DndContext, DragOverlay, type DragEndEvent } from "@dnd-kit/core";
+import { DragDropProvider, DragOverlay, type DragEndEvent } from "@dnd-kit/react";
 import { Button } from "@/components/ui/button";
 import { useFeatureFlagsStore, useCollapsedFlagIds } from "../../hooks/use-flags-store";
 import { useProjectFlags, useSelectedProject } from "../../hooks/use-flags-store";
@@ -46,13 +46,11 @@ export function FlagList() {
     setFlagParent(selectedProjectId, flagId, parentId);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleDragEnd = (source: { id: string | number }, target: { id: string | number }) => {
+    if (!target || source.id === target.id) return;
 
-    if (!over || active.id === over.id) return;
-
-    const draggedFlagId = active.id as string;
-    const targetFlagId = over.id as string;
+    const draggedFlagId = source.id as string;
+    const targetFlagId = target.id as string;
 
     // Find the target flag
     const targetFlag = flags.find((f) => f.id === targetFlagId);
@@ -82,76 +80,64 @@ export function FlagList() {
       ) : null}
 
       {hasFlags || isCreating ? (
-        <DndContext
-          onDragEnd={handleDragEnd}
-          onDragStart={(event) => setActiveDragId(event.active.id as string)}
-          onDragCancel={() => setActiveDragId(null)}
+        <DragDropProvider
+          onDragEnd={(event) => {
+            if (event.canceled) return;
+            const { target, source } = event.operation;
+            if (source && target) handleDragEnd(source, target);
+            // setIsDropped(target?.id === 'droppable');
+          }}
         >
           <ul className="flex flex-col gap-2">
-          {renderList.map((node) =>
-            editingFlagId === node.flag.id ? (
-              <FlagEditRow
-                key={node.flag.id}
-                flag={node.flag}
-                projectId={selectedProjectId}
-                onDone={() => setEditingFlagId(null)}
-                onCancel={() => setEditingFlagId(null)}
-              />
-            ) : (
-              <FlagRow
-                key={node.flag.id}
-                flag={node.flag}
-                projectId={selectedProjectId}
-                allFlags={flags}
-                depth={node.depth}
-                hasChildren={node.hasChildren}
-                isLastChild={node.isLastChild}
-                ancestorIsLastChild={node.ancestorIsLastChild}
-                isCollapsed={collapsedFlagIds.has(node.flag.id)}
-                onEdit={() => setEditingFlagId(node.flag.id)}
-                onDelete={() => deleteFlag(selectedProjectId, node.flag.id)}
-                onAddChild={() => handleAddChild(node.flag.id)}
-                onDetach={() => handleDetach(node.flag.id)}
-                onToggleCollapse={() => toggleFlagCollapsed(node.flag.id)}
-                onMoveTo={(parentId) => handleMoveTo(node.flag.id, parentId)}
-              />
-            )
-          )}
+            {renderList.map((node) =>
+              editingFlagId === node.flag.id ? (
+                <FlagEditRow
+                  key={node.flag.id}
+                  flag={node.flag}
+                  projectId={selectedProjectId}
+                  onDone={() => setEditingFlagId(null)}
+                  onCancel={() => setEditingFlagId(null)}
+                />
+              ) : (
+                <FlagRow
+                  key={node.flag.id}
+                  flag={node.flag}
+                  projectId={selectedProjectId}
+                  allFlags={flags}
+                  depth={node.depth}
+                  hasChildren={node.hasChildren}
+                  isLastChild={node.isLastChild}
+                  ancestorIsLastChild={node.ancestorIsLastChild}
+                  isCollapsed={collapsedFlagIds.has(node.flag.id)}
+                  onEdit={() => setEditingFlagId(node.flag.id)}
+                  onDelete={() => deleteFlag(selectedProjectId, node.flag.id)}
+                  onAddChild={() => handleAddChild(node.flag.id)}
+                  onDetach={() => handleDetach(node.flag.id)}
+                  onToggleCollapse={() => toggleFlagCollapsed(node.flag.id)}
+                  onMoveTo={(parentId) => handleMoveTo(node.flag.id, parentId)}
+                />
+              ),
+            )}
 
-          {isCreating && (
-            <FlagCreateRow
-              key={`create-${selectedProjectId}`}
-              projectId={selectedProjectId}
-              parentId={creatingParentId}
-              onDone={() => {
-                setIsCreating(false);
-                setCreatingParentId(null);
-              }}
-              onCancel={() => {
-                setIsCreating(false);
-                setCreatingParentId(null);
-              }}
-            />
-          )}
+            {isCreating && (
+              <FlagCreateRow
+                key={`create-${selectedProjectId}`}
+                projectId={selectedProjectId}
+                parentId={creatingParentId}
+                onDone={() => {
+                  setIsCreating(false);
+                  setCreatingParentId(null);
+                }}
+                onCancel={() => {
+                  setIsCreating(false);
+                  setCreatingParentId(null);
+                }}
+              />
+            )}
           </ul>
 
-          {/* Custom drag preview - show dragged flag name */}
-          <DragOverlay>
-            {activeDragId ? (
-              (() => {
-                const draggedFlag = flags.find((f) => f.id === activeDragId);
-                if (!draggedFlag) return null;
-                return (
-                  <div className="border rounded-full px-2 bg-card flex items-center gap-2 shadow-lg">
-                    <span className="text-sm font-medium text-foreground">
-                      {draggedFlag.name}
-                    </span>
-                  </div>
-                );
-              })()
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+     
+        </DragDropProvider>
       ) : null}
 
       {/* "Add new flag..." button */}

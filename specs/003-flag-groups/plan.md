@@ -5,12 +5,12 @@
 
 ## Summary
 
-Extend the existing flat feature-flag list to support a parent-child hierarchy. Any boolean flag can act as a parent; any flag (any type) can be a child. The hierarchy is rendered in-place using dashed CSS elbow connectors. A collapse/expand toggle (a `FlagElementContainer` immediately after the name container) appears on parent rows. Reparenting is done via drag-and-drop (primary, using `@dnd-kit/core`) and via a "Move to…" searchable dropdown in the flag's context menu (fallback). All hierarchy and collapse state lives in the existing Zustand store; no backend or persistence changes are required.
+Extend the existing flat feature-flag list to support a parent-child hierarchy. Any boolean flag can act as a parent; any flag (any type) can be a child. The hierarchy is rendered in-place using dashed CSS elbow connectors. A collapse/expand toggle (a `FlagElementContainer` immediately after the name container) appears on parent rows. Reparenting is done via drag-and-drop (primary, using `@dnd-kit/react`) and via a "Move to…" searchable dropdown in the flag's context menu (fallback). All hierarchy and collapse state lives in the existing Zustand store; no backend or persistence changes are required.
 
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x, strict mode, no `any`
-**Primary Dependencies**: React 19.x, Zustand 5.x, Tailwind CSS v4, shadcn/ui, Lucide React, TanStack Router v1, `@dnd-kit/core` + `@dnd-kit/utilities` (new — drag-and-drop)
+**Primary Dependencies**: React 19.x, Zustand 5.x, Tailwind CSS v4, shadcn/ui, Lucide React, TanStack Router v1, `@dnd-kit/react` + `@dnd-kit/utilities` (new — drag-and-drop)
 **Storage**: In-memory Zustand store only (no Prisma/SQLite changes for this feature)
 **Testing**: Vitest (unit — tree utilities, store action guards), Playwright (e2e — collapse/expand, child assignment, drag-and-drop reparenting)
 **Target Platform**: Web (Vite + React, `apps/web`)
@@ -30,7 +30,7 @@ Extend the existing flat feature-flag list to support a parent-child hierarchy. 
 | III. Type-Safe API Contract | PASS | Pure client-side feature. Store actions serve as typed internal contract. No tRPC/Prisma changes. |
 | IV. State Isolation — Multiple Stores | PASS | `parentId`, `collapsedFlagIds` added to existing feature store only. DnD active-drag state is ephemeral (`useState` in `FlagList`). No cross-store dependencies. |
 | V. Test Discipline | PASS | `flag-tree.ts` pure utilities + store action guards (type-change, cycle detection) MUST have Vitest unit tests. Collapse/expand, DnD reparenting, and "Move to…" picker MUST have Playwright e2e tests. |
-| VI. Simplicity & YAGNI | PASS | `parentId: string \| null` is the minimal data change. `@dnd-kit/core` is the simplest DnD library for React 19 (no deprecated APIs). `flag-tree.ts` utility extracted because used in 3+ places (rendering, row props, tests). |
+| VI. Simplicity & YAGNI | PASS | `parentId: string \| null` is the minimal data change. `@dnd-kit/react` is the simplest DnD library for React 19 (no deprecated APIs). `flag-tree.ts` utility extracted because used in 3+ places (rendering, row props, tests). |
 
 ## Project Structure
 

@@ -9,11 +9,11 @@ This feature has no network communication. The Zustand store actions serve as th
 ## New Dependency
 
 ```
-@dnd-kit/core        # DndContext, useDraggable, useDroppable, DragEndEvent
+@dnd-kit/react        # DndContext, useDraggable, useDroppable, DragEndEvent
 @dnd-kit/utilities   # CSS.Transform utility
 ```
 
-Install: `pnpm --filter web add @dnd-kit/core @dnd-kit/utilities`
+Install: `pnpm --filter web add @dnd-kit/react @dnd-kit/utilities`
 
 ---
 

@@ -12,7 +12,7 @@
 ```bash
 pnpm install
 # Install the new DnD dependency
-pnpm --filter web add @dnd-kit/core @dnd-kit/utilities
+pnpm --filter web add @dnd-kit/react @dnd-kit/utilities
 ```
 
 ## Development

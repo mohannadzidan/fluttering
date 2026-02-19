@@ -57,8 +57,8 @@
 
 ## Decision 8: Drag-and-Drop Library for Reparenting
 
-- **Decision**: `@dnd-kit/core` + `@dnd-kit/utilities` (new dependency).
-- **Rationale**: No DnD library exists in the project. `@dnd-kit/core` is the recommended choice for React 19: it is framework-agnostic at the core, ships with zero deprecated lifecycle APIs, supports pointer and touch events natively, has no peer-dependency conflicts with React 19, and is the lightest complete DnD solution (~10 kB gzipped). The `useDraggable` and `useDroppable` hooks compose cleanly with existing row components without requiring a tree restructure. Drop targets can be scoped to boolean flags only via the hook's `disabled` prop.
+- **Decision**: `@dnd-kit/react` + `@dnd-kit/utilities` (new dependency).
+- **Rationale**: No DnD library exists in the project. `@dnd-kit/react` is the recommended choice for React 19: it is framework-agnostic at the core, ships with zero deprecated lifecycle APIs, supports pointer and touch events natively, has no peer-dependency conflicts with React 19, and is the lightest complete DnD solution (~10 kB gzipped). The `useDraggable` and `useDroppable` hooks compose cleanly with existing row components without requiring a tree restructure. Drop targets can be scoped to boolean flags only via the hook's `disabled` prop.
 - **Integration pattern**:
   - `FlagList` wraps the flag list in a `<DndContext onDragEnd={...}>`.
   - Each `FlagRow` uses `useDraggable({ id: flag.id })` to make the row draggable.
@@ -89,6 +89,6 @@
 | Collapse toggle placement | FlagElementContainer after name container in FlagRow |
 | Parent eligibility | Boolean flags only; enforced in store + UI |
 | Orphan handling on delete | Promote direct children to root in `deleteFlag` action |
-| Drag-and-drop library | `@dnd-kit/core` + `@dnd-kit/utilities` (new dependency) |
+| Drag-and-drop library | `@dnd-kit/react` + `@dnd-kit/utilities` (new dependency) |
 | Type-change guard | Block `updateFlag` type change if flag has children; UI disables selector |
 | Direct reparenting mechanism | `setFlagParent` covers both; DnD calls it on drop; "Move to…" calls it on picker select |
