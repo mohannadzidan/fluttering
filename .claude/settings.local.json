@@ -5,7 +5,12 @@
       "Bash(powershell.exe -ExecutionPolicy Bypass -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json -PathsOnly)",
       "Bash(powershell.exe -ExecutionPolicy Bypass -File \".specify/scripts/powershell/setup-plan.ps1\" -Json)",
       "Bash(powershell -NoProfile -Command \".specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks\")",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(git fetch:*)",
+      "Bash(FEATURE_DESC='we need to create the main feature in this app, the feature flags, we will start with the boolean type, \\(true / false switch\\), each flag must have a name, type, and a value, showing when it was created and when last time it was updated, there will be more flag types coming in the future. This feature is UI only, no backend needed, just maintain everything in zustand, no persistence is needed. The UI should be a sidebar showing the fluttering logo and right under it a drop down to select the project and then a divider then an empty space, the sidebar should be collapsible. Each flag will be shown in the right side, the theme of the app will be dark, with text in white and radiate colors \\(#e3cee3\\) and the background of the app will be in dark violet color \\(#30173d\\). Accent color cosmic: #de5fe9. Each flag will be listed in a list and at the end of the list there will be a button \"\"Add new flag ...\"\" which will create flag inplace, allowing to edit the flag name and type in place without a modal. Each flag will be shown like: <name> <type-icon> <value-switch> <created-at-icon+time> <updated-at-icon+time> <menu-button>. The switch will be on the right end, type shown as lucide-react icon. At the end of each flag item there will be a menu icon button that when clicked opens a popup to edit or delete the flag.')",
+      "Bash(powershell.exe -File \".specify/scripts/powershell/create-new-feature.ps1\" -Json \"$FEATURE_DESC\" -Number 2 -ShortName \"feature-flags\")",
+      "Bash(powershell.exe -File \".specify/scripts/powershell/update-agent-context.ps1\" -AgentType claude)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -Command \"./.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks\")"
     ]
   }
 }
