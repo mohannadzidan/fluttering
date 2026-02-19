@@ -135,7 +135,7 @@
 
 **Independent Test**: Create an enum type used by 3 flags → open edit modal → click Delete → warning: "3 flag(s) use this type. Deleting it will also delete those flags." → confirm → type gone from picker, all 3 flags removed from list.
 
-- [ ] T018 [US5] Update `components/enum-types/enum-type-modal.tsx` — wire the "Delete" button (footer, visible only in edit mode): on click, compute `getAffectedFlagCount(enumType.id, flags)`; show a shadcn/ui `AlertDialog`:
+- [x] T018 [US5] Update `components/enum-types/enum-type-modal.tsx` — wire the "Delete" button (footer, visible only in edit mode): on click, compute `getAffectedFlagCount(enumType.id, flags)`; show a shadcn/ui `AlertDialog`:
   - 0 flags: "Delete this enum type? This cannot be undone." → confirm → `deleteEnumType(id)` → close modal and picker
   - N > 0 flags: "N flag(s) use this type. Deleting it will also delete those flags. This cannot be undone." → confirm → `deleteEnumType(id)` → close modal and picker
 

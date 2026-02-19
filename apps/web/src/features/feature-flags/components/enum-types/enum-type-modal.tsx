@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFeatureFlagsStore } from "../../hooks/use-flags-store";
-import { isNameUnique, areValuesUnique, getAffectedFlagsByValue } from "../../utils/enum-type";
+import { isNameUnique, areValuesUnique, getAffectedFlagsByValue, getAffectedFlagCount } from "../../utils/enum-type";
 import { EnumValueList, type ValueItem } from "./enum-value-list";
 import type { EnumType } from "../../types";
 
@@ -72,6 +72,7 @@ export function EnumTypeModal({
   const flags = useFeatureFlagsStore((state) => state.flags);
   const createEnumType = useFeatureFlagsStore((state) => state.createEnumType);
   const updateEnumType = useFeatureFlagsStore((state) => state.updateEnumType);
+  const deleteEnumType = useFeatureFlagsStore((state) => state.deleteEnumType);
 
   const isEditMode = enumType !== undefined;
 
@@ -88,6 +89,7 @@ export function EnumTypeModal({
     affectedCount: number;
     newDefaultValue: string;
   } | null>(null);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
 
   const reset = () => {
     setName(enumType?.name ?? "");
@@ -99,6 +101,7 @@ export function EnumTypeModal({
     setNameError(null);
     setValuesError(null);
     setValueRemovalAlert(null);
+    setDeleteConfirmationOpen(false);
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -240,9 +243,7 @@ export function EnumTypeModal({
                 type="button"
                 variant="destructive"
                 size="sm"
-                onClick={() => {
-                  // Phase 7: Delete button handler
-                }}
+                onClick={() => setDeleteConfirmationOpen(true)}
                 className="mr-auto"
               >
                 <Trash2 className="mr-1.5 h-4 w-4" />
@@ -279,6 +280,38 @@ export function EnumTypeModal({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmValueRemoval}>
               Remove value
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Type Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmationOpen} onOpenChange={setDeleteConfirmationOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete enum type?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {enumType && (() => {
+                const affectedCount = getAffectedFlagCount(enumType.id, flags);
+                if (affectedCount === 0) {
+                  return "Delete this enum type? This cannot be undone.";
+                }
+                return `${affectedCount} flag${affectedCount !== 1 ? "s" : ""} use${affectedCount === 1 ? "s" : ""} this type. Deleting it will also delete those flags. This cannot be undone.`;
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (enumType) {
+                  deleteEnumType(enumType.id);
+                  handleOpenChange(false);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
