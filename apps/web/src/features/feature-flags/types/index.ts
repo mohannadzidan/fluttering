@@ -33,6 +33,8 @@ export interface FeatureFlag<T extends FlagType = FlagType> {
   type: T;
   /** The flag's current value — type-safe via FlagValue<T> */
   value: FlagValue<T>;
+  /** ID of parent flag for hierarchy, or null for root-level flags */
+  parentId: string | null;
   /** Set once on creation; never mutated */
   createdAt: Date;
   /** Refreshed on every value toggle or metadata update */
@@ -85,6 +87,12 @@ export interface FeatureFlagsState {
    * true = expanded (default), false = collapsed.
    */
   sidebarOpen: boolean;
+
+  /**
+   * Set of flag IDs currently in collapsed state.
+   * Used to hide children of parent flags in the UI.
+   */
+  collapsedFlagIds: Set<string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -105,8 +113,9 @@ export interface FeatureFlagsActions {
    * Create a new flag and append it to the project's flag list.
    * Sets value to the type-appropriate default (false for boolean).
    * Sets createdAt and updatedAt to the current timestamp.
+   * Optional parentId makes the flag a child of an existing parent (default: null for root).
    */
-  addFlag: (projectId: string, name: string, type: FlagType) => void;
+  addFlag: (projectId: string, name: string, type: FlagType, parentId?: string | null) => void;
 
   /**
    * Update a flag's name and/or type.
@@ -128,9 +137,24 @@ export interface FeatureFlagsActions {
 
   /**
    * Remove a flag from the project's list.
+   * Direct children of deleted flag are promoted to root (parentId set to null).
+   * Removes flagId from collapsedFlagIds.
    * Does nothing if flagId is not found.
    */
   deleteFlag: (projectId: string, flagId: string) => void;
+
+  /**
+   * Assign or reassign a flag's parent.
+   * Validates: target parent must exist, be boolean type, and not be a descendant.
+   * Silently rejects invalid assignments.
+   */
+  setFlagParent: (projectId: string, flagId: string, parentId: string | null) => void;
+
+  /**
+   * Toggle collapse state of a parent flag.
+   * Adds flagId to collapsedFlagIds if not present, removes if present.
+   */
+  toggleFlagCollapsed: (flagId: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -163,6 +187,7 @@ export const SEED_FLAGS: Record<string, AnyFlag[]> = {
       name: "dark-mode",
       type: "boolean",
       value: true,
+      parentId: null,
       createdAt: new Date("2026-02-10T10:00:00Z"),
       updatedAt: new Date("2026-02-18T14:30:00Z"),
     },
@@ -171,6 +196,7 @@ export const SEED_FLAGS: Record<string, AnyFlag[]> = {
       name: "new-checkout",
       type: "boolean",
       value: false,
+      parentId: null,
       createdAt: new Date("2026-02-15T09:00:00Z"),
       updatedAt: new Date("2026-02-15T09:00:00Z"),
     },
@@ -181,6 +207,7 @@ export const SEED_FLAGS: Record<string, AnyFlag[]> = {
       name: "beta-dashboard",
       type: "boolean",
       value: false,
+      parentId: null,
       createdAt: new Date("2026-02-19T08:00:00Z"),
       updatedAt: new Date("2026-02-19T08:00:00Z"),
     },

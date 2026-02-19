@@ -32,3 +32,10 @@ export function useProjects() {
 export function useSidebarOpen() {
   return useFeatureFlagsStore((state) => state.sidebarOpen);
 }
+
+/**
+ * Get the set of collapsed flag IDs.
+ */
+export function useCollapsedFlagIds() {
+  return useFeatureFlagsStore((state) => state.collapsedFlagIds);
+}
