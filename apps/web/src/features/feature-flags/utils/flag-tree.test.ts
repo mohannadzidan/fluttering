@@ -108,6 +108,25 @@ describe("flag-tree utilities", () => {
   });
 
   describe("buildRenderList", () => {
+    // Helper to create enum flags
+    function createEnumFlag(
+      id: string,
+      name: string,
+      enumTypeId: string,
+      parentId: string | null = null
+    ): AnyFlag {
+      return {
+        id,
+        name,
+        type: "enum",
+        enumTypeId,
+        value: "production",
+        parentId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
+
     it("returns empty array for empty flags", () => {
       const list = buildRenderList([], new Set());
       expect(list).toEqual([]);
@@ -310,9 +329,62 @@ describe("flag-tree utilities", () => {
 
       expect(list).toHaveLength(5);
 
-      // B1a: ancestors are [A (last=true), B (last=true), B1 (last=true)]
+      // B1a: ancestors are [A (last=true), B (last=false), B1 (last=true)]
+      // A is the only child of root (true), B is not the last child of A because C follows (false),
+      // B1 is the last child of B (true)
       const b1aNode = list.find((n) => n.flag.id === "b1a");
-      expect(b1aNode?.ancestorIsLastChild).toEqual([true, true, true]);
+      expect(b1aNode?.ancestorIsLastChild).toEqual([true, false, true]);
+    });
+
+    it("renders enum flags correctly in tree structure", () => {
+      // Parent: Boolean flag A
+      // Children: Enum flag B (child of A)
+      // This verifies that enum flags work correctly in the tree despite not being parents
+      const a = createFlag("a", "parent-flag");
+      const b = createEnumFlag("b", "enum-child", "type-1", "a");
+      const flags = [a, b];
+
+      const list = buildRenderList(flags, new Set());
+
+      expect(list).toHaveLength(2);
+      expect(list[0]).toMatchObject({
+        flag: a,
+        depth: 0,
+        hasChildren: true,
+      });
+      expect(list[1]).toMatchObject({
+        flag: b,
+        depth: 1,
+        hasChildren: false, // Enum flags cannot be parents
+        ancestorIsLastChild: [true],
+      });
+    });
+
+    it("handles mixed boolean and enum flags in hierarchy", () => {
+      // A (boolean root)
+      //   ├─ B (enum child of A)
+      //   └─ C (boolean child of A)
+      const a = createFlag("a", "A");
+      const b = createEnumFlag("b", "B", "type-1", "a");
+      const c = createFlag("c", "C", "a");
+      const flags = [a, b, c];
+
+      const list = buildRenderList(flags, new Set());
+
+      expect(list).toHaveLength(3);
+      expect(list[0]).toMatchObject({ flag: a, depth: 0, hasChildren: true });
+      expect(list[1]).toMatchObject({
+        flag: b,
+        depth: 1,
+        isLastChild: false,
+        hasChildren: false,
+      });
+      expect(list[2]).toMatchObject({
+        flag: c,
+        depth: 1,
+        isLastChild: true,
+        hasChildren: false,
+      });
     });
   });
 });

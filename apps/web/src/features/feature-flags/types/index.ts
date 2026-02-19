@@ -1,5 +1,23 @@
 // ---------------------------------------------------------------------------
-// Flag Types (extensible discriminated union)
+// Enum Type Entity
+// ---------------------------------------------------------------------------
+
+/**
+ * A user-defined enum type that can be assigned to flags.
+ * Enum types are global (not per-project) and referenced by enum flags via enumTypeId.
+ */
+export interface EnumType {
+  /** UUID — generated with crypto.randomUUID() on creation */
+  id: string;
+  /** Display name; unique case-insensitive comparison */
+  name: string;
+  /** Ordered list of allowed values; case-sensitive unique; length >= 1 */
+  values: string[];
+  // values[0] is the implicit default value
+}
+
+// ---------------------------------------------------------------------------
+// Flag Types (discriminated union)
 // ---------------------------------------------------------------------------
 
 /**
@@ -7,32 +25,40 @@
  * Extend this union when adding new flag types.
  * Each new member requires corresponding icon, value-control, and default value.
  */
-export type FlagType = "boolean"; // | "string" | "number" | "json" (future)
-
-/**
- * Maps a FlagType to its concrete value type.
- * Provides type-safe value access without runtime casting.
- */
-export type FlagValue<T extends FlagType> = T extends "boolean" ? boolean : never;
+export type FlagType = "boolean" | "enum"; // | "string" | "number" | "json" (future)
 
 // ---------------------------------------------------------------------------
-// Feature Flag Entity
+// Feature Flag Variants (Discriminated Union)
 // ---------------------------------------------------------------------------
 
 /**
- * A single feature flag entry within a project.
- * Uses a discriminated union keyed on `type` to ensure
- * `value` is always typed correctly for its flag type.
+ * Ephemeral flag state during inline creation — exists only in UI local state.
+ * Transitions to BooleanFlag or EnumFlag on Create. Never persisted to store.
  */
-export interface FeatureFlag<T extends FlagType = FlagType> {
+export interface UntypedFlag {
+  id: string;
+  name: string;
+  type: "untyped";
+  value: null;
+  parentId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * A boolean feature flag.
+ * Uses a discriminated union keyed on `type: "boolean"` to ensure
+ * `value` is always boolean.
+ */
+export interface BooleanFlag {
   /** UUID — generated with crypto.randomUUID() on creation */
   id: string;
   /** Display name — non-empty, not unique within a project */
   name: string;
-  /** Flag type — discriminates the `value` field's TypeScript type */
-  type: T;
-  /** The flag's current value — type-safe via FlagValue<T> */
-  value: FlagValue<T>;
+  /** Flag type discriminator */
+  type: "boolean";
+  /** The flag's current value */
+  value: boolean;
   /** ID of parent flag for hierarchy, or null for root-level flags */
   parentId: string | null;
   /** Set once on creation; never mutated */
@@ -41,11 +67,32 @@ export interface FeatureFlag<T extends FlagType = FlagType> {
   updatedAt: Date;
 }
 
-/** Convenience alias for boolean flags (the only implemented type) */
-export type BooleanFlag = FeatureFlag<"boolean">;
+/**
+ * An enum feature flag.
+ * Uses a discriminated union keyed on `type: "enum"` to ensure
+ * enumTypeId and value are present and correctly typed.
+ */
+export interface EnumFlag {
+  /** UUID — generated with crypto.randomUUID() on creation */
+  id: string;
+  /** Display name — non-empty, not unique within a project */
+  name: string;
+  /** Flag type discriminator */
+  type: "enum";
+  /** References EnumType.id */
+  enumTypeId: string;
+  /** Current value; must be in EnumType.values */
+  value: string;
+  /** ID of parent flag for hierarchy — must be null (enum flags cannot be parents) */
+  parentId: string | null;
+  /** Set once on creation; never mutated */
+  createdAt: Date;
+  /** Refreshed on every value change or metadata update */
+  updatedAt: Date;
+}
 
-/** Union of all concrete flag types (for runtime use in arrays/records) */
-export type AnyFlag = BooleanFlag; // Expand to: BooleanFlag | StringFlag | ... (future)
+/** Union of all concrete persisted flag types (excludes UntypedFlag which is UI-only) */
+export type AnyFlag = BooleanFlag | EnumFlag;
 
 // ---------------------------------------------------------------------------
 // Project Entity
@@ -93,6 +140,12 @@ export interface FeatureFlagsState {
    * Used to hide children of parent flags in the UI.
    */
   collapsedFlagIds: Set<string>;
+
+  /**
+   * Global registry of enum types (not per-project).
+   * Referenced by EnumFlags via enumTypeId.
+   */
+  enumTypes: EnumType[];
 }
 
 // ---------------------------------------------------------------------------
@@ -111,11 +164,18 @@ export interface FeatureFlagsActions {
 
   /**
    * Create a new flag and append it to the project's flag list.
-   * Sets value to the type-appropriate default (false for boolean).
+   * For boolean: sets value to false (default).
+   * For enum: sets value to enumType.values[0] (default); enumTypeId must be provided.
    * Sets createdAt and updatedAt to the current timestamp.
    * Optional parentId makes the flag a child of an existing parent (default: null for root).
    */
-  addFlag: (projectId: string, name: string, type: FlagType, parentId?: string | null) => void;
+  addFlag: (
+    projectId: string,
+    name: string,
+    type: "boolean" | "enum",
+    parentId?: string | null,
+    enumTypeId?: string
+  ) => void;
 
   /**
    * Update a flag's name and/or type.
@@ -155,6 +215,32 @@ export interface FeatureFlagsActions {
    * Adds flagId to collapsedFlagIds if not present, removes if present.
    */
   toggleFlagCollapsed: (flagId: string) => void;
+
+  /**
+   * Create a new enum type and add it to enumTypes.
+   * Enforces: name uniqueness (case-insensitive), values.length >= 1, values uniqueness (case-sensitive).
+   */
+  createEnumType: (name: string, values: string[]) => void;
+
+  /**
+   * Update an existing enum type's name and/or values.
+   * After update, any EnumFlag whose current value is no longer in the new values[]
+   * is automatically reset to values[0] (the new default).
+   * Enforces: name uniqueness (excluding self), values.length >= 1, values uniqueness.
+   */
+  updateEnumType: (id: string, name: string, values: string[]) => void;
+
+  /**
+   * Delete an enum type and all EnumFlags referencing it across all projects.
+   */
+  deleteEnumType: (id: string) => void;
+
+  /**
+   * Set the current value of an EnumFlag.
+   * Validates: value must be in the flag's EnumType.values.
+   * No-op if invalid.
+   */
+  setEnumFlagValue: (projectId: string, flagId: string, value: string) => void;
 }
 
 // ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-import { ToggleRight } from "lucide-react";
+import { ToggleRight, ListFilter } from "lucide-react";
 import type { FlagType } from "../types";
 
 interface FlagTypeIconProps {
@@ -14,6 +14,8 @@ export function FlagTypeIcon({ type, className = "h-4 w-4" }: FlagTypeIconProps)
   switch (type) {
     case "boolean":
       return <ToggleRight className={className} />;
+    case "enum":
+      return <ListFilter className={className} />;
     default:
       const _exhaustive: never = type;
       return _exhaustive;

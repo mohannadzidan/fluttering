@@ -13,6 +13,7 @@
   "dependencies": {
     "@base-ui/react": "^1.2.0",
     "@dnd-kit/helpers": "^0.3.2",
+    "@dnd-kit/react": "^0.3.2",
     "@dnd-kit/utilities": "^3.2.2",
     "@fluttering/api": "workspace:*",
     "@fluttering/auth": "workspace:*",
@@ -58,9 +59,11 @@
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/ui": "^4.0.18",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.0.15",
     "typescript": "catalog:",
-    "vite": "^6.2.2"
+    "vite": "^6.2.2",
+    "vitest": "^4.0.18"
   }
 }

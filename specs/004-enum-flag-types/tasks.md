@@ -31,9 +31,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Update `types/index.ts` — replace the `FeatureFlag<T extends FlagType>` generic with a discriminated union: define `BooleanFlag` (`type: "boolean"`, `value: boolean`), `EnumFlag` (`type: "enum"`, `enumTypeId: string`, `value: string`), and `type AnyFlag = BooleanFlag | EnumFlag`. Add the `EnumType` interface (`id`, `name`, `values: string[]`). Extend `FeatureFlagsState` with `enumTypes: EnumType[]`. Add new action signatures to `FeatureFlagsStore`: `createEnumType`, `updateEnumType`, `deleteEnumType`, `setEnumFlagValue`. Update `addFlag` signature to accept `type: "boolean" | "enum"` and optional `enumTypeId?: string`.
+- [x] T004 Update `types/index.ts` — replace the `FeatureFlag<T extends FlagType>` generic with a discriminated union: define `BooleanFlag` (`type: "boolean"`, `value: boolean`), `EnumFlag` (`type: "enum"`, `enumTypeId: string`, `value: string`), and `type AnyFlag = BooleanFlag | EnumFlag`. Add the `EnumType` interface (`id`, `name`, `values: string[]`). Extend `FeatureFlagsState` with `enumTypes: EnumType[]`. Add new action signatures to `FeatureFlagsStore`: `createEnumType`, `updateEnumType`, `deleteEnumType`, `setEnumFlagValue`. Update `addFlag` signature to accept `type: "boolean" | "enum"` and optional `enumTypeId?: string`.
 
-- [ ] T005 Update `store/index.ts` — implement all new actions (depends on T004):
+- [x] T005 Update `store/index.ts` — implement all new actions (depends on T004):
   - Add `enumTypes: []` to initial state
   - `createEnumType(name, values)`: generate UUID, enforce name uniqueness (case-insensitive), enforce `values.length >= 1` and case-sensitive uniqueness within list, push to `enumTypes`
   - `updateEnumType(id, name, values)`: replace the matching type; after update, iterate all `flags` in all projects — for any `EnumFlag` with `enumTypeId === id` whose `value` is not in the new `values[]`, reset `value` to `values[0]`
@@ -41,23 +41,23 @@
   - `setEnumFlagValue(projectId, flagId, value)`: find the flag, verify it's an `EnumFlag` and `value` is in its type's `values[]`, set `flag.value = value`, refresh `updatedAt`
   - Update `addFlag` to construct `EnumFlag` when `type === "enum"` (initial `value = enumType.values[0]`)
 
-- [ ] T006 [P] Create `utils/enum-type.ts` — pure, side-effect-free helper functions (depends on T004 types):
+- [x] T006 [P] Create `utils/enum-type.ts` — pure, side-effect-free helper functions (depends on T004 types):
   - `isNameUnique(name: string, existing: EnumType[], excludeId?: string): boolean` — case-insensitive comparison
   - `areValuesUnique(values: string[]): boolean` — case-sensitive check
   - `getAffectedFlagCount(enumTypeId: string, flags: Record<string, AnyFlag[]>): number` — count of all `EnumFlag`s referencing this type across all projects
   - `getAffectedFlagsByValue(enumTypeId: string, value: string, flags: Record<string, AnyFlag[]>): number` — count of `EnumFlag`s with a specific value for this type
   - `wouldRemoveUsedValue(enumTypeId: string, removedValue: string, flags: Record<string, AnyFlag[]>): boolean` — returns true if any flag currently holds that value
 
-- [ ] T007 [P] Create `utils/enum-type.test.ts` — Vitest unit tests for every function in `utils/enum-type.ts` (depends on T006):
+- [x] T007 [P] Create `utils/enum-type.test.ts` — Vitest unit tests for every function in `utils/enum-type.ts` (depends on T006):
   - `isNameUnique`: accepts unique name, rejects duplicate (case-insensitive), respects `excludeId`
   - `areValuesUnique`: accepts unique list, rejects duplicates (case-sensitive)
   - `getAffectedFlagCount`: returns 0 for no matches, correct count for N matching flags
   - `getAffectedFlagsByValue`: returns correct per-value count
   - `wouldRemoveUsedValue`: true when a flag holds the value, false when none do
 
-- [ ] T008 Review `utils/flag-tree.ts` — confirm `buildRenderList`, `hasDescendant`, and `getDirectChildren` use only `flag.parentId` (not `flag.type` assumptions); if any utility assumes `flag.type === "boolean"` for traversal, patch it. Add test cases to `utils/flag-tree.test.ts` for `EnumFlag` nodes in the tree.
+- [x] T008 Review `utils/flag-tree.ts` — confirm `buildRenderList`, `hasDescendant`, and `getDirectChildren` use only `flag.parentId` (not `flag.type` assumptions); if any utility assumes `flag.type === "boolean"` for traversal, patch it. Add test cases to `utils/flag-tree.test.ts` for `EnumFlag` nodes in the tree.
 
-- [ ] T009 [P] Update `components/flag-type-icon.tsx` — add an icon case for `type === "enum"` (e.g., Lucide `ListFilter` or `ToggleRight`); ensure the existing `"boolean"` case is preserved
+- [x] T009 [P] Update `components/flag-type-icon.tsx` — add an icon case for `type === "enum"` (e.g., Lucide `ListFilter` or `ToggleRight`); ensure the existing `"boolean"` case is preserved
 
 **Checkpoint**: Foundation ready — TypeScript compiles with zero errors, store actions exist (even if components haven't been wired yet), and all Vitest utility tests pass.
 

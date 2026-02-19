@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { FeatureFlagsStore, AnyFlag } from "../types";
+import type { FeatureFlagsStore, AnyFlag, EnumType } from "../types";
 import { SEED_PROJECTS, SEED_FLAGS } from "../types";
 
 /**
@@ -32,30 +32,59 @@ export const useFeatureFlagsStore = create<FeatureFlagsStore>((set, get) => ({
   flags: SEED_FLAGS,
   sidebarOpen: true,
   collapsedFlagIds: new Set(),
+  enumTypes: [],
 
   // Actions
   selectProject: (projectId) => set({ selectedProjectId: projectId }),
 
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
-  addFlag: (projectId, name, type, parentId = null) =>
+  addFlag: (projectId, name, type, parentId = null, enumTypeId) =>
     set((state) => {
       const now = new Date();
-      const newFlag = {
-        id: crypto.randomUUID(),
-        name: name.trim(),
-        type,
-        value: false, // default for boolean
-        parentId: parentId ?? null,
-        createdAt: now,
-        updatedAt: now,
-      };
-      return {
-        flags: {
-          ...state.flags,
-          [projectId]: [...(state.flags[projectId] ?? []), newFlag],
-        },
-      };
+      const trimmedName = name.trim();
+
+      if (type === "boolean") {
+        const newFlag = {
+          id: crypto.randomUUID(),
+          name: trimmedName,
+          type: "boolean" as const,
+          value: false,
+          parentId: parentId ?? null,
+          createdAt: now,
+          updatedAt: now,
+        };
+        return {
+          flags: {
+            ...state.flags,
+            [projectId]: [...(state.flags[projectId] ?? []), newFlag],
+          },
+        };
+      }
+
+      if (type === "enum" && enumTypeId) {
+        const enumType = state.enumTypes.find((et) => et.id === enumTypeId);
+        if (!enumType || enumType.values.length === 0) return state;
+
+        const newFlag = {
+          id: crypto.randomUUID(),
+          name: trimmedName,
+          type: "enum" as const,
+          enumTypeId,
+          value: enumType.values[0],
+          parentId: parentId ?? null,
+          createdAt: now,
+          updatedAt: now,
+        };
+        return {
+          flags: {
+            ...state.flags,
+            [projectId]: [...(state.flags[projectId] ?? []), newFlag],
+          },
+        };
+      }
+
+      return state;
     }),
 
   updateFlag: (projectId, flagId, updates) =>
@@ -63,9 +92,10 @@ export const useFeatureFlagsStore = create<FeatureFlagsStore>((set, get) => ({
       const projectFlags = state.flags[projectId] ?? [];
       const flag = projectFlags.find((f) => f.id === flagId);
 
+      if (!flag) return state;
+
       // Guard: prevent type change if flag has children
       if (
-        flag &&
         updates.type &&
         updates.type !== flag.type &&
         flag.type === "boolean"
@@ -80,9 +110,18 @@ export const useFeatureFlagsStore = create<FeatureFlagsStore>((set, get) => ({
       return {
         flags: {
           ...state.flags,
-          [projectId]: projectFlags.map((f) =>
-            f.id === flagId ? { ...f, ...updates, updatedAt: new Date() } : f
-          ),
+          [projectId]: projectFlags.map((f) => {
+            if (f.id === flagId) {
+              const { name, type } = updates;
+              return {
+                ...f,
+                ...(name !== undefined && { name }),
+                ...(type !== undefined && { type }),
+                updatedAt: new Date(),
+              } as AnyFlag;
+            }
+            return f;
+          }),
         },
       };
     }),
@@ -164,5 +203,129 @@ export const useFeatureFlagsStore = create<FeatureFlagsStore>((set, get) => ({
         newCollapsedFlagIds.add(flagId);
       }
       return { collapsedFlagIds: newCollapsedFlagIds };
+    }),
+
+  createEnumType: (name, values) =>
+    set((state) => {
+      const trimmedName = name.trim();
+
+      // Guard: enforce name uniqueness (case-insensitive)
+      if (
+        state.enumTypes.some(
+          (et) => et.name.toLowerCase() === trimmedName.toLowerCase()
+        )
+      ) {
+        return state;
+      }
+
+      // Guard: enforce values.length >= 1 and case-sensitive uniqueness
+      if (values.length === 0) return state;
+      if (new Set(values).size !== values.length) return state; // duplicates found
+
+      const newEnumType: EnumType = {
+        id: crypto.randomUUID(),
+        name: trimmedName,
+        values,
+      };
+
+      return {
+        enumTypes: [...state.enumTypes, newEnumType],
+      };
+    }),
+
+  updateEnumType: (id, name, values) =>
+    set((state) => {
+      const enumType = state.enumTypes.find((et) => et.id === id);
+      if (!enumType) return state;
+
+      const trimmedName = name.trim();
+
+      // Guard: enforce name uniqueness (case-insensitive, excluding self)
+      if (
+        state.enumTypes.some(
+          (et) =>
+            et.id !== id &&
+            et.name.toLowerCase() === trimmedName.toLowerCase()
+        )
+      ) {
+        return state;
+      }
+
+      // Guard: enforce values.length >= 1 and case-sensitive uniqueness
+      if (values.length === 0) return state;
+      if (new Set(values).size !== values.length) return state;
+
+      // Update the enum type
+      const updatedEnumTypes = state.enumTypes.map((et) =>
+        et.id === id
+          ? { ...et, name: trimmedName, values }
+          : et
+      );
+
+      // After updating values, reset any enum flags that hold removed values
+      const updatedFlags = { ...state.flags };
+      for (const projectId in updatedFlags) {
+        updatedFlags[projectId] = updatedFlags[projectId].map((flag) => {
+          if (
+            flag.type === "enum" &&
+            flag.enumTypeId === id &&
+            !values.includes(flag.value)
+          ) {
+            return { ...flag, value: values[0], updatedAt: new Date() };
+          }
+          return flag;
+        });
+      }
+
+      return {
+        enumTypes: updatedEnumTypes,
+        flags: updatedFlags,
+      };
+    }),
+
+  deleteEnumType: (id) =>
+    set((state) => {
+      const hasType = state.enumTypes.some((et) => et.id === id);
+      if (!hasType) return state;
+
+      // Remove the enum type
+      const updatedEnumTypes = state.enumTypes.filter((et) => et.id !== id);
+
+      // Remove all enum flags referencing this type
+      const updatedFlags = { ...state.flags };
+      for (const projectId in updatedFlags) {
+        updatedFlags[projectId] = updatedFlags[projectId].filter(
+          (flag) => !(flag.type === "enum" && flag.enumTypeId === id)
+        );
+      }
+
+      return {
+        enumTypes: updatedEnumTypes,
+        flags: updatedFlags,
+      };
+    }),
+
+  setEnumFlagValue: (projectId, flagId, value) =>
+    set((state) => {
+      const projectFlags = state.flags[projectId] ?? [];
+      const flag = projectFlags.find((f) => f.id === flagId);
+
+      // Guard: flag must exist and be enum type
+      if (!flag || flag.type !== "enum") return state;
+
+      // Guard: value must be in the enum type's values
+      const enumType = state.enumTypes.find((et) => et.id === flag.enumTypeId);
+      if (!enumType || !enumType.values.includes(value)) return state;
+
+      return {
+        flags: {
+          ...state.flags,
+          [projectId]: projectFlags.map((f) =>
+            f.id === flagId && f.type === "enum"
+              ? { ...f, value, updatedAt: new Date() }
+              : f
+          ),
+        },
+      };
     }),
 }));
