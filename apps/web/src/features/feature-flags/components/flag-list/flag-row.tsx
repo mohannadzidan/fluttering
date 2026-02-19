@@ -27,6 +27,9 @@ export function FlagRow({ flag, projectId, onEdit, onDelete }: FlagRowProps) {
 
   return (
     <li className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3">
+      {/* Type icon */}
+      <FlagTypeIcon type={flag.type} className="h-4 w-4 text-cosmic" />
+
       {/* Flag name with tooltip */}
       <Tooltip>
         <TooltipTrigger>
@@ -39,9 +42,6 @@ export function FlagRow({ flag, projectId, onEdit, onDelete }: FlagRowProps) {
         </TooltipContent>
       </Tooltip>
 
-      {/* Type icon */}
-      <FlagTypeIcon type={flag.type} className="h-4 w-4 text-cosmic" />
-
       {/* Spacer */}
       <div className="flex-1" />
 
@@ -53,13 +53,13 @@ export function FlagRow({ flag, projectId, onEdit, onDelete }: FlagRowProps) {
       />
 
       {/* Created timestamp */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-24">
         <CalendarPlus className="h-4 w-4 text-muted-foreground" />
         <span className="text-xs text-radiate">{formatFlagTime(flag.createdAt)}</span>
       </div>
 
       {/* Updated timestamp */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-24">
         <CalendarClock className="h-4 w-4 text-muted-foreground" />
         <span className="text-xs text-radiate">{formatFlagTime(flag.updatedAt)}</span>
       </div>
