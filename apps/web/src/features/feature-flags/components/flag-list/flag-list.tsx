@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Settings2 } from "lucide-react";
 import { DragDropProvider, DragOverlay, type DragEndEvent } from "@dnd-kit/react";
 import { Button } from "@/components/ui/button";
 import { useFeatureFlagsStore, useCollapsedFlagIds } from "../../hooks/use-flags-store";
@@ -8,6 +8,7 @@ import { buildRenderList, hasDescendant } from "../../utils/flag-tree";
 import { FlagRow } from "./flag-row";
 import { FlagCreateRow } from "./flag-create-row";
 import { FlagEditRow } from "./flag-edit-row";
+import { TypePicker } from "../enum-types/type-picker";
 
 /**
  * Display the list of flags for the currently selected project as a tree hierarchy.
@@ -140,20 +141,32 @@ export function FlagList() {
         </DragDropProvider>
       ) : null}
 
-      {/* "Add new flag..." button */}
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full"
-        onClick={() => {
-          setCreatingParentId(null);
-          setIsCreating(true);
-        }}
-        disabled={isCreating}
-      >
-        <Plus className="mr-2 h-4 w-4" />
-        Add new flag...
-      </Button>
+      {/* Toolbar: Manage Types + Add new flag */}
+      <div className="flex items-center gap-2">
+        <TypePicker
+          mode="manage"
+          trigger={
+            <Button variant="outline" size="sm">
+              <Settings2 className="mr-1.5 h-3.5 w-3.5" />
+              Manage Types
+            </Button>
+          }
+        />
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          onClick={() => {
+            setCreatingParentId(null);
+            setIsCreating(true);
+          }}
+          disabled={isCreating}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add new flag...
+        </Button>
+      </div>
     </div>
   );
 }
