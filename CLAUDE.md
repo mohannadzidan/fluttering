@@ -36,6 +36,9 @@ TypeScript 5.x, strict mode: Follow standard conventions
 
 
 <!-- MANUAL ADDITIONS START -->
+- you MUST use `pnpm` at all times, npm not allowed
 - you MUST always adhere to .specify/memory/constitution.md principles no matter what, they are NON-NEGOTIABLE
 - Always use Context7 MCP when you need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
+- use `pnpm -F web test` to run the tests of the frontend (it runs vitest command with the option `--run`, you can add any additional args or options to it as needed)
+- use `pnpm -F web lint` to check for linting issues
 <!-- MANUAL ADDITIONS END -->

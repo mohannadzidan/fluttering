@@ -106,7 +106,7 @@
 
 **Independent Test**: Create an enum flag (via US2). Confirm the row shows the default value. Click the value control → dropdown shows all enum type values → select a different one → row updates.
 
-- [ ] T016 [US3] Update `components/flag-list/flag-row.tsx` — replace the `Switch` with a conditional render based on `flag.type`:
+- [x] T016 [US3] Update `components/flag-list/flag-row.tsx` — replace the `Switch` with a conditional render based on `flag.type`:
   - `"boolean"`: existing `Switch` (unchanged)
   - `"enum"`: render a shadcn/ui `Select` whose `value` is `flag.value`, whose items are all `enumType.values` (look up the `EnumType` via `flag.enumTypeId` from the store's `enumTypes`), and whose `onValueChange` calls `setEnumFlagValue(projectId, flag.id, newValue)`
   - Guard `toggleFlagValue` call site: ensure it only fires for `flag.type === "boolean"` (TypeScript narrowing should enforce this after T004, but confirm no runtime path reaches it for enum flags)
@@ -121,9 +121,9 @@
 
 **Independent Test**: Create an enum type with 3 values, assign it to 2 flags each set to "staging". Open the type picker → edit the type → remove "staging" → confirm the warning ("2 flag(s) will be reset to 'production'") → save → both flags now show "production".
 
-- [ ] T016 [US4] Update `components/enum-types/enum-type-modal.tsx` — add **edit mode** (prop `enumType: EnumType | undefined`): when `enumType` is provided, pre-fill name and values; show a "Delete" destructive button in the footer (wired in Phase 7). On Save in edit mode: compare original vs new values to detect removed values; for each removed value call `getAffectedFlagsByValue(enumTypeId, value, flags)` — if any flag is affected, show a shadcn/ui `AlertDialog` listing: "Removing '[value]' will reset X flag(s) to '[new default]'. Continue?" Proceed with `updateEnumType(id, name, values)` only after confirmation.
+- [x] T016 [US4] Update `components/enum-types/enum-type-modal.tsx` — add **edit mode** (prop `enumType: EnumType | undefined`): when `enumType` is provided, pre-fill name and values; show a "Delete" destructive button in the footer (wired in Phase 7). On Save in edit mode: compare original vs new values to detect removed values; for each removed value call `getAffectedFlagsByValue(enumTypeId, value, flags)` — if any flag is affected, show a shadcn/ui `AlertDialog` listing: "Removing '[value]' will reset X flag(s) to '[new default]'. Continue?" Proceed with `updateEnumType(id, name, values)` only after confirmation.
 
-- [ ] T017 [US4] Update `components/enum-types/type-picker.tsx` — in manage mode, wire the edit icon next to each enum type to open `EnumTypeModal` with `enumType={selectedEnumType}` (edit mode). Manage the `editingEnumType` state locally in the picker.
+- [x] T017 [US4] Update `components/enum-types/type-picker.tsx` — in manage mode, wire the edit icon next to each enum type to open `EnumTypeModal` with `enumType={selectedEnumType}` (edit mode). Manage the `editingEnumType` state locally in the picker.
 
 **Checkpoint (US4)**: Edit flow complete including value-removal safety. Affected flags visibly reset to new default after confirmed edit.
 

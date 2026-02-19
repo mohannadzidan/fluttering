@@ -50,10 +50,16 @@ export function TypePicker({ mode, trigger, onSelect }: TypePickerProps) {
 
   const [open, setOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editingEnumType, setEditingEnumType] = useState<typeof enumTypes[number] | null>(null);
 
   const handleOpenCreateModal = () => {
     setOpen(false);
     setCreateModalOpen(true);
+  };
+
+  const handleOpenEditModal = (enumType: typeof enumTypes[number]) => {
+    setOpen(false);
+    setEditingEnumType(enumType);
   };
 
   const handleEnumTypeCreated = (newEnumTypeId: string) => {
@@ -113,7 +119,7 @@ export function TypePicker({ mode, trigger, onSelect }: TypePickerProps) {
                       {et.name}
                     </span>
 
-                    {/* Edit icon — wired in Phase 6 */}
+                    {/* Edit icon — opens EnumTypeModal in edit mode */}
                     {mode === "manage" && (
                       <Button
                         type="button"
@@ -122,7 +128,7 @@ export function TypePicker({ mode, trigger, onSelect }: TypePickerProps) {
                         className="ml-auto h-5 w-5"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Phase 6: open EnumTypeModal in edit mode
+                          handleOpenEditModal(et);
                         }}
                         aria-label={`Edit ${et.name}`}
                       >
@@ -152,6 +158,15 @@ export function TypePicker({ mode, trigger, onSelect }: TypePickerProps) {
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
         onCreated={handleEnumTypeCreated}
+      />
+
+      {/* EnumTypeModal — edit mode */}
+      <EnumTypeModal
+        open={editingEnumType !== null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setEditingEnumType(null);
+        }}
+        enumType={editingEnumType ?? undefined}
       />
     </>
   );

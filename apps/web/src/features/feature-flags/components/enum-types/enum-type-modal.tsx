@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -7,16 +7,32 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFeatureFlagsStore } from "../../hooks/use-flags-store";
-import { isNameUnique, areValuesUnique } from "../../utils/enum-type";
+import { isNameUnique, areValuesUnique, getAffectedFlagsByValue } from "../../utils/enum-type";
 import { EnumValueList, type ValueItem } from "./enum-value-list";
+import type { EnumType } from "../../types";
 
 interface EnumTypeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Enum type to edit. If undefined, modal is in create mode.
+   * Phase 6 feature.
+   */
+  enumType?: EnumType;
   /**
    * Called after a new enum type is successfully created.
    * Used in assign mode (TypePicker) to auto-select the new type.
@@ -26,31 +42,63 @@ interface EnumTypeModalProps {
 }
 
 /**
- * Dialog for creating a new enum type (Phase 3: create mode only).
- * Edit mode will be added in Phase 6.
+ * Dialog for creating or editing an enum type.
+ *
+ * **Create mode** (enumType === undefined):
+ * - Empty name and value fields
+ * - Save creates new type
+ * - No Delete button
+ *
+ * **Edit mode** (enumType !== undefined):
+ * - Pre-filled name and values from enumType prop
+ * - Save updates the type
+ * - Delete button appears (Phase 7)
+ * - Value removal triggers confirmation dialog (Phase 6)
  *
  * Contains:
  * - A name input
  * - A sortable EnumValueList
  * - An "Add value" button
  * - Save / Cancel footer buttons
+ * - Delete button (edit mode only)
  */
-export function EnumTypeModal({ open, onOpenChange, onCreated }: EnumTypeModalProps) {
+export function EnumTypeModal({
+  open,
+  onOpenChange,
+  enumType,
+  onCreated
+}: EnumTypeModalProps) {
   const enumTypes = useFeatureFlagsStore((state) => state.enumTypes);
+  const flags = useFeatureFlagsStore((state) => state.flags);
   const createEnumType = useFeatureFlagsStore((state) => state.createEnumType);
+  const updateEnumType = useFeatureFlagsStore((state) => state.updateEnumType);
 
-  const [name, setName] = useState("");
-  const [items, setItems] = useState<ValueItem[]>([
-    { id: crypto.randomUUID(), value: "" },
-  ]);
+  const isEditMode = enumType !== undefined;
+
+  const [name, setName] = useState(enumType?.name ?? "");
+  const [items, setItems] = useState<ValueItem[]>(
+    enumType?.values.map((value) => ({ id: crypto.randomUUID(), value })) ?? [
+      { id: crypto.randomUUID(), value: "" },
+    ]
+  );
   const [nameError, setNameError] = useState<string | null>(null);
   const [valuesError, setValuesError] = useState<string | null>(null);
+  const [valueRemovalAlert, setValueRemovalAlert] = useState<{
+    removedValue: string;
+    affectedCount: number;
+    newDefaultValue: string;
+  } | null>(null);
 
   const reset = () => {
-    setName("");
-    setItems([{ id: crypto.randomUUID(), value: "" }]);
+    setName(enumType?.name ?? "");
+    setItems(
+      enumType?.values.map((value) => ({ id: crypto.randomUUID(), value })) ?? [
+        { id: crypto.randomUUID(), value: "" },
+      ]
+    );
     setNameError(null);
     setValuesError(null);
+    setValueRemovalAlert(null);
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -73,7 +121,7 @@ export function EnumTypeModal({ open, onOpenChange, onCreated }: EnumTypeModalPr
     if (!trimmedName) {
       setNameError("Name is required.");
       hasError = true;
-    } else if (!isNameUnique(trimmedName, enumTypes)) {
+    } else if (!isNameUnique(trimmedName, enumTypes, isEditMode ? enumType?.id : undefined)) {
       setNameError("An enum type with this name already exists.");
       hasError = true;
     } else {
@@ -93,19 +141,56 @@ export function EnumTypeModal({ open, onOpenChange, onCreated }: EnumTypeModalPr
 
     if (hasError) return;
 
-    const newEnumTypeId = createEnumType(trimmedName, values);
-    if (newEnumTypeId) {
-      onCreated?.(newEnumTypeId);
+    // Edit mode: check for removed values
+    if (isEditMode && enumType) {
+      const removedValues = enumType.values.filter((v) => !values.includes(v));
+      if (removedValues.length > 0) {
+        // Check if any flags are affected by the removed value
+        const firstRemovedValue = removedValues[0];
+        const affectedCount = getAffectedFlagsByValue(enumType.id, firstRemovedValue, flags);
+        if (affectedCount > 0) {
+          // Show confirmation dialog for value removal
+          setValueRemovalAlert({
+            removedValue: firstRemovedValue,
+            affectedCount,
+            newDefaultValue: values[0],
+          });
+          return; // Don't save yet
+        }
+      }
     }
-    handleOpenChange(false);
+
+    // Create or update
+    if (isEditMode && enumType) {
+      updateEnumType(enumType.id, trimmedName, values);
+      handleOpenChange(false);
+    } else {
+      const newEnumTypeId = createEnumType(trimmedName, values);
+      if (newEnumTypeId) {
+        onCreated?.(newEnumTypeId);
+      }
+      handleOpenChange(false);
+    }
+  };
+
+  const handleConfirmValueRemoval = () => {
+    if (!valueRemovalAlert) return;
+    const trimmedName = name.trim();
+    const values = items.map((i) => i.value.trim()).filter((v) => v.length > 0);
+
+    if (isEditMode && enumType) {
+      updateEnumType(enumType.id, trimmedName, values);
+      handleOpenChange(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Create enum type</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{isEditMode ? "Edit enum type" : "Create enum type"}</DialogTitle>
+          </DialogHeader>
 
         <div className="flex flex-col gap-4">
           {/* Name field */}
@@ -149,20 +234,55 @@ export function EnumTypeModal({ open, onOpenChange, onCreated }: EnumTypeModalPr
           </div>
         </div>
 
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button type="button" size="sm" onClick={handleSave}>
-            Save
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            {isEditMode && (
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  // Phase 7: Delete button handler
+                }}
+                className="mr-auto"
+              >
+                <Trash2 className="mr-1.5 h-4 w-4" />
+                Delete
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="button" size="sm" onClick={handleSave}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Value Removal Confirmation Dialog */}
+      <AlertDialog open={valueRemovalAlert !== null} onOpenChange={() => setValueRemovalAlert(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm value removal</AlertDialogTitle>
+            <AlertDialogDescription>
+              Removing "{valueRemovalAlert?.removedValue}" will reset{" "}
+              {valueRemovalAlert?.affectedCount} flag{valueRemovalAlert?.affectedCount !== 1 ? "s" : ""} to "
+              {valueRemovalAlert?.newDefaultValue}". Continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmValueRemoval}>
+              Remove value
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

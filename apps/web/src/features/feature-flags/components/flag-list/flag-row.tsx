@@ -1,6 +1,13 @@
 import { CalendarClock, CalendarPlus, ChevronDown, ChevronRight } from "lucide-react";
 import { useDraggable, useDroppable } from "@dnd-kit/react";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { AnyFlag } from "../../types";
 import { formatFlagTime } from "../../utils/format-time";
 import { useFeatureFlagsStore } from "../../hooks/use-flags-store";
@@ -215,6 +222,8 @@ export function FlagRow({
   onMoveTo,
 }: FlagRowProps) {
   const toggleFlagValue = useFeatureFlagsStore((state) => state.toggleFlagValue);
+  const setEnumFlagValue = useFeatureFlagsStore((state) => state.setEnumFlagValue);
+  const enumTypes = useFeatureFlagsStore((state) => state.enumTypes);
   const [isDragging, setIsDragging] = useState(false);
   // DnD: droppable only (draggable moved to DraggableFlagName component)
   const { ref, isDropTarget } = useDroppable({
@@ -223,7 +232,15 @@ export function FlagRow({
   });
 
   const handleToggle = () => {
-    toggleFlagValue(projectId, flag.id);
+    if (flag.type === "boolean") {
+      toggleFlagValue(projectId, flag.id);
+    }
+  };
+
+  const handleEnumValueChange = (newValue: string | null) => {
+    if (flag.type === "enum" && newValue !== null) {
+      setEnumFlagValue(projectId, flag.id, newValue);
+    }
   };
 
   const leftPadding = depth * INDENT_UNIT;
@@ -267,13 +284,33 @@ export function FlagRow({
       {/* Spacer */}
       <div className="flex-1 " />
 
-      {/* Toggle switch */}
+      {/* Value control: Switch for boolean, Select for enum */}
       <FlagElement className="group-[.dragging]:opacity-0">
-        <Switch
-          checked={flag.type === "boolean" ? flag.value : false}
-          onCheckedChange={handleToggle}
-          aria-label={`Toggle ${flag.name}`}
-        />
+        {flag.type === "boolean" ? (
+          <Switch
+            checked={flag.value}
+            onCheckedChange={handleToggle}
+            aria-label={`Toggle ${flag.name}`}
+          />
+        ) : flag.type === "enum" ? (
+          (() => {
+            const enumType = enumTypes.find((et) => et.id === flag.enumTypeId);
+            return (
+              <Select value={flag.value} onValueChange={handleEnumValueChange}>
+                <SelectTrigger className="h-6 w-24 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {enumType?.values.map((value) => (
+                    <SelectItem key={value} value={value} className="text-xs">
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            );
+          })()
+        ) : null}
       </FlagElement>
 
       {/* Created timestamp */}
