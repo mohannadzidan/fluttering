@@ -10,6 +10,43 @@ import { FlagTypeIcon } from "../flag-type-icon";
 import { FlagMenu } from "./flag-menu";
 import { FlagConnector } from "./flag-connector";
 
+/**
+ * Draggable name container component
+ */
+function DraggableFlagName({ flag }: { flag: AnyFlag }) {
+  const { attributes, listeners, setNodeRef, isDragging, transform } = useDraggable({
+    id: flag.id,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={{
+        opacity: isDragging ? 0.5 : 1,
+        transform: CSS.Transform.toString(transform),
+        cursor: "grab",
+        touchAction: "none",
+      }}
+    >
+      <div className="border rounded-full px-2 bg-card flex items-center z-1 group-hover:border-primary gap-2">
+        <FlagTypeIcon type={flag.type} className="h-4 w-4 text-cosmic" />
+        <Tooltip>
+          <TooltipTrigger>
+            <span className="max-w-50 truncate text-sm font-medium text-foreground">
+              {flag.name}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <span className="text-xs">{flag.name}</span>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </div>
+  );
+}
+
 interface FlagRowProps {
   flag: AnyFlag;
   projectId: string;
@@ -56,21 +93,11 @@ export function FlagRow({
 }: FlagRowProps) {
   const toggleFlagValue = useFeatureFlagsStore((state) => state.toggleFlagValue);
 
-  // DnD hooks
-  const { attributes, listeners, setNodeRef: setDraggableRef, transform, isDragging } = useDraggable({
-    id: flag.id,
-  });
-
+  // DnD: droppable only (draggable moved to DraggableFlagName component)
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: flag.id,
     disabled: flag.type !== "boolean",
   });
-
-  // Merge both refs
-  const ref = (node: HTMLLIElement | null) => {
-    setDraggableRef(node);
-    setDroppableRef(node);
-  };
 
   const handleToggle = () => {
     toggleFlagValue(projectId, flag.id);
@@ -80,15 +107,12 @@ export function FlagRow({
 
   return (
     <li
-      ref={ref}
-      {...attributes}
-      {...listeners}
-      className={`flex items-stretch gap-4 px-1 py-1 relative rounded-full group transition-opacity ${
-        isDragging ? "opacity-50" : ""
-      } ${isOver && flag.type === "boolean" ? "bg-accent" : ""}`}
+      ref={setDroppableRef}
+      className={`flex items-stretch gap-4 px-1 py-1 relative rounded-full group transition-colors ${
+        isOver && flag.type === "boolean" ? "bg-accent" : ""
+      }`}
       style={{
         marginLeft: `${leftPadding}px`,
-        transform: CSS.Transform.toString(transform),
       }}
     >
       {/* Tree connector for non-root flags */}
@@ -100,20 +124,8 @@ export function FlagRow({
         />
       )}
 
-      {/* Flag name with tooltip */}
-      <FlagElementContainer>
-        <FlagTypeIcon type={flag.type} className="h-4 w-4 text-cosmic" />
-        <Tooltip>
-          <TooltipTrigger>
-            <span className="max-w-50 truncate text-sm font-medium text-foreground">
-              {flag.name}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <span className="text-xs">{flag.name}</span>
-          </TooltipContent>
-        </Tooltip>
-      </FlagElementContainer>
+      {/* Flag name with tooltip - draggable from here */}
+      <DraggableFlagName flag={flag} />
 
       {/* Collapse toggle (if parent) */}
       {hasChildren && (

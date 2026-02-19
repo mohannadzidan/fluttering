@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragOverlay, type DragEndEvent } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { useFeatureFlagsStore, useCollapsedFlagIds } from "../../hooks/use-flags-store";
 import { useProjectFlags, useSelectedProject } from "../../hooks/use-flags-store";
@@ -26,6 +26,7 @@ export function FlagList() {
   const [isCreating, setIsCreating] = useState(false);
   const [creatingParentId, setCreatingParentId] = useState<string | null>(null);
   const [editingFlagId, setEditingFlagId] = useState<string | null>(null);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   const hasFlags = flags.length > 0;
 
@@ -81,7 +82,11 @@ export function FlagList() {
       ) : null}
 
       {hasFlags || isCreating ? (
-        <DndContext onDragEnd={handleDragEnd}>
+        <DndContext
+          onDragEnd={handleDragEnd}
+          onDragStart={(event) => setActiveDragId(event.active.id as string)}
+          onDragCancel={() => setActiveDragId(null)}
+        >
           <ul className="flex flex-col gap-2">
           {renderList.map((node) =>
             editingFlagId === node.flag.id ? (
@@ -129,6 +134,23 @@ export function FlagList() {
             />
           )}
           </ul>
+
+          {/* Custom drag preview - show dragged flag name */}
+          <DragOverlay>
+            {activeDragId ? (
+              (() => {
+                const draggedFlag = flags.find((f) => f.id === activeDragId);
+                if (!draggedFlag) return null;
+                return (
+                  <div className="border rounded-full px-2 bg-card flex items-center gap-2 shadow-lg">
+                    <span className="text-sm font-medium text-foreground">
+                      {draggedFlag.name}
+                    </span>
+                  </div>
+                );
+              })()
+            ) : null}
+          </DragOverlay>
         </DndContext>
       ) : null}
 
