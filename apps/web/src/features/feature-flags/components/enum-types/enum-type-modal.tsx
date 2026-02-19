@@ -17,6 +17,12 @@ import { EnumValueList, type ValueItem } from "./enum-value-list";
 interface EnumTypeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Called after a new enum type is successfully created.
+   * Used in assign mode (TypePicker) to auto-select the new type.
+   * Phase 4 feature.
+   */
+  onCreated?: (enumTypeId: string) => void;
 }
 
 /**
@@ -29,7 +35,7 @@ interface EnumTypeModalProps {
  * - An "Add value" button
  * - Save / Cancel footer buttons
  */
-export function EnumTypeModal({ open, onOpenChange }: EnumTypeModalProps) {
+export function EnumTypeModal({ open, onOpenChange, onCreated }: EnumTypeModalProps) {
   const enumTypes = useFeatureFlagsStore((state) => state.enumTypes);
   const createEnumType = useFeatureFlagsStore((state) => state.createEnumType);
 
@@ -87,7 +93,10 @@ export function EnumTypeModal({ open, onOpenChange }: EnumTypeModalProps) {
 
     if (hasError) return;
 
-    createEnumType(trimmedName, values);
+    const newEnumTypeId = createEnumType(trimmedName, values);
+    if (newEnumTypeId) {
+      onCreated?.(newEnumTypeId);
+    }
     handleOpenChange(false);
   };
 

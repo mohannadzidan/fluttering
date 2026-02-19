@@ -219,8 +219,9 @@ export interface FeatureFlagsActions {
   /**
    * Create a new enum type and add it to enumTypes.
    * Enforces: name uniqueness (case-insensitive), values.length >= 1, values uniqueness (case-sensitive).
+   * Returns the newly created enum type's ID on success, or null if creation fails (validation error).
    */
-  createEnumType: (name: string, values: string[]) => void;
+  createEnumType: (name: string, values: string[]) => string | null;
 
   /**
    * Update an existing enum type's name and/or values.

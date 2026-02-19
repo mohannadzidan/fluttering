@@ -56,6 +56,14 @@ export function TypePicker({ mode, trigger, onSelect }: TypePickerProps) {
     setCreateModalOpen(true);
   };
 
+  const handleEnumTypeCreated = (newEnumTypeId: string) => {
+    // Auto-select the newly created enum type (assign mode only)
+    if (mode === "assign") {
+      onSelect?.("enum", newEnumTypeId);
+      setOpen(false);
+    }
+  };
+
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
@@ -143,6 +151,7 @@ export function TypePicker({ mode, trigger, onSelect }: TypePickerProps) {
       <EnumTypeModal
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
+        onCreated={handleEnumTypeCreated}
       />
     </>
   );

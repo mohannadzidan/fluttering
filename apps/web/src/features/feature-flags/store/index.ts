@@ -205,33 +205,35 @@ export const useFeatureFlagsStore = create<FeatureFlagsStore>((set, get) => ({
       return { collapsedFlagIds: newCollapsedFlagIds };
     }),
 
-  createEnumType: (name, values) =>
-    set((state) => {
-      const trimmedName = name.trim();
+  createEnumType: (name, values) => {
+    const state = get();
+    const trimmedName = name.trim();
 
-      // Guard: enforce name uniqueness (case-insensitive)
-      if (
-        state.enumTypes.some(
-          (et) => et.name.toLowerCase() === trimmedName.toLowerCase()
-        )
-      ) {
-        return state;
-      }
+    // Guard: enforce name uniqueness (case-insensitive)
+    if (
+      state.enumTypes.some(
+        (et) => et.name.toLowerCase() === trimmedName.toLowerCase()
+      )
+    ) {
+      return null;
+    }
 
-      // Guard: enforce values.length >= 1 and case-sensitive uniqueness
-      if (values.length === 0) return state;
-      if (new Set(values).size !== values.length) return state; // duplicates found
+    // Guard: enforce values.length >= 1 and case-sensitive uniqueness
+    if (values.length === 0) return null;
+    if (new Set(values).size !== values.length) return null; // duplicates found
 
-      const newEnumType: EnumType = {
-        id: crypto.randomUUID(),
-        name: trimmedName,
-        values,
-      };
+    const newEnumType: EnumType = {
+      id: crypto.randomUUID(),
+      name: trimmedName,
+      values,
+    };
 
-      return {
-        enumTypes: [...state.enumTypes, newEnumType],
-      };
-    }),
+    set({
+      enumTypes: [...state.enumTypes, newEnumType],
+    });
+
+    return newEnumType.id;
+  },
 
   updateEnumType: (id, name, values) =>
     set((state) => {

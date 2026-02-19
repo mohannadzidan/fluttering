@@ -1,5 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRender, mergeProps } from "@base-ui/react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { useFeatureFlagsStore } from "../../hooks/use-flags-store";
+import { TypePicker } from "../enum-types/type-picker";
+import type { AnyFlag } from "../../types";
 
 interface FlagCreateRowProps {
   projectId: string;
@@ -9,10 +14,29 @@ interface FlagCreateRowProps {
 }
 
 /**
- * Inline form row for creating a new flag.
- * Auto-focused text input for flag name.
- * Confirms on Enter (validates name), cancels on Escape.
- * Optionally creates the flag as a child of a parent flag.
+ * Helper component: renders a styled flag element (matching flag-row.tsx design)
+ */
+function FlagElement({ render, className, ...props }: useRender.ComponentProps<"div">) {
+  return useRender({
+    defaultTagName: "div",
+    render,
+    props: {
+      ...props,
+      className: cn("border rounded-full px-2 bg-card flex items-center z-1 gap-2", className),
+    },
+  });
+}
+
+/**
+ * Inline form row for creating a new flag with type assignment.
+ *
+ * Local state: { name, selectedType, selectedEnumTypeId }
+ *
+ * Layout:
+ * - Auto-focused name input
+ * - Type picker (shows "+ Type" or selected type preview)
+ * - Create button (disabled until name + type are set)
+ * - Enter key creates, Escape / blur cancel
  */
 export function FlagCreateRow({
   projectId,
@@ -21,52 +45,116 @@ export function FlagCreateRow({
   onCancel,
 }: FlagCreateRowProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const rowRef = useRef<HTMLLIElement>(null);
   const addFlag = useFeatureFlagsStore((state) => state.addFlag);
+  const enumTypes = useFeatureFlagsStore((state) => state.enumTypes);
+
+  // Local state for type selection
+  const [name, setName] = useState("");
+  const [selectedType, setSelectedType] = useState<"boolean" | "enum" | null>(null);
+  const [selectedEnumTypeId, setSelectedEnumTypeId] = useState<string | null>(null);
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
 
   // Auto-focus on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
+  const canCreate = name.trim().length > 0 && selectedType !== null;
+
+  const handleTypeSelect = (type: "boolean" | "enum", enumTypeId?: string) => {
+    setSelectedType(type);
+    setSelectedEnumTypeId(enumTypeId ?? null);
+    setTypePickerOpen(false);
+  };
+
+  const handleCreate = () => {
+    if (!canCreate) return;
+
+    const trimmedName = name.trim();
+    addFlag(projectId, trimmedName, selectedType, parentId, selectedEnumTypeId ?? undefined);
+    onDone();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      const name = inputRef.current?.value.trim() ?? "";
-
-      if (!name) {
-        // Highlight input with red ring
-        inputRef.current?.classList.add("ring-2", "ring-red-500");
-        return;
+      if (canCreate) {
+        handleCreate();
       }
-
-      // Create the flag with optional parentId
-      addFlag(projectId, name, "boolean", parentId);
-      onDone();
     } else if (e.key === "Escape") {
       e.preventDefault();
       onCancel();
     }
   };
 
+  // Render the type preview or "+ Type" label
+  const getTypeDisplay = () => {
+    if (selectedType === null) {
+      return <span className="text-sm text-muted-foreground">+ Type</span>;
+    }
+
+    if (selectedType === "boolean") {
+      return (
+        <span className="text-sm font-medium">Boolean</span>
+      );
+    }
+
+    // Enum type selected
+    const enumType = enumTypes.find((et) => et.id === selectedEnumTypeId);
+    if (enumType) {
+      const defaultValue = enumType.values[0];
+      return (
+        <div className="flex items-center gap-1 text-sm">
+          <span className="font-medium">{enumType.name}</span>
+          <span className="text-xs text-muted-foreground">({defaultValue})</span>
+        </div>
+      );
+    }
+
+    // Fallback (shouldn't happen)
+    return <span className="text-sm text-muted-foreground">Select type…</span>;
+  };
+
   return (
-    <li className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3">
+    <li
+      ref={rowRef}
+      className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3"
+    >
       {/* Name input */}
       <input
         ref={inputRef}
         type="text"
         placeholder="Flag name..."
-        className="rounded border border-input bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
         onKeyDown={handleKeyDown}
-        onBlur={() => {
-          inputRef.current?.classList.remove("ring-2", "ring-red-500");
-        }}
+        className="rounded border border-input bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 flex-1"
       />
 
-      {/* Spacer to align with other rows */}
-      <div className="flex-1" />
+      {/* Type selector — opens type picker */}
+      <TypePicker
+        mode="assign"
+        trigger={
+          <FlagElement
+            onClick={() => setTypePickerOpen(!typePickerOpen)}
+            className="cursor-pointer hover:bg-accent/50"
+          >
+            {getTypeDisplay()}
+          </FlagElement>
+        }
+        onSelect={handleTypeSelect}
+      />
 
-      {/* Type selector (placeholder - always Boolean for now) */}
-      <span className="text-xs text-muted-foreground">Boolean</span>
+      {/* Create button */}
+      <Button
+        type="button"
+        size="sm"
+        onClick={handleCreate}
+        disabled={!canCreate}
+      >
+        Create
+      </Button>
     </li>
   );
 }

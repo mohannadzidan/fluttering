@@ -87,9 +87,9 @@
 
 **Independent Test**: Click "Add new flag…" → creation row appears with "+ Type" and disabled Create button → type a name → Create still disabled → click "+ Type" → select "Boolean" → Create enables → press Enter → flag appears in list.
 
-- [ ] T014 [US2] Extend `components/enum-types/type-picker.tsx` with **assign mode**: in `mode="assign"`, the picker shows a "Primitive Types" group with a "Boolean" item first, then an "Enum Types" group listing all `enumTypes`. Selecting any item calls `onSelect(type: "boolean" | "enum", enumTypeId?: string)` and closes the popover. The "Create new enum type…" footer item opens `EnumTypeModal` in create mode; after the modal saves, the new type is auto-selected and `onSelect` is called with the new type.
+- [x] T014 [US2] Extend `components/enum-types/type-picker.tsx` with **assign mode**: in `mode="assign"`, the picker shows a "Primitive Types" group with a "Boolean" item first, then an "Enum Types" group listing all `enumTypes`. Selecting any item calls `onSelect(type: "boolean" | "enum", enumTypeId?: string)` and closes the popover. The "Create new enum type…" footer item opens `EnumTypeModal` in create mode; after the modal saves, the new type is auto-selected and `onSelect` is called with the new type.
 
-- [ ] T015 [US2] Rewrite `components/flag-list/flag-create-row.tsx` — redesign the creation row to match the UI of an existing flag row. Local state: `{ name: string, selectedType: "boolean" | "enum" | null, selectedEnumTypeId: string | null }`. Layout:
+- [x] T015 [US2] Rewrite `components/flag-list/flag-create-row.tsx` — redesign the creation row to match the UI of an existing flag row. Local state: `{ name: string, selectedType: "boolean" | "enum" | null, selectedEnumTypeId: string | null }`. Layout:
   - A flag name `<Input>` (auto-focused on mount)
   - A `FlagElement` that renders "+ Type" when `selectedType === null`, or a type preview chip (type name + first value) when a type is selected; clicking this `FlagElement` opens `TypePicker` in `mode="assign"` with `onSelect` updating local state
   - A "Create" `<Button>` at row end, disabled while `!name.trim() || selectedType === null`
