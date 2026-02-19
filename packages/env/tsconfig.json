@@ -1,0 +1,3 @@
+{
+  "extends": "@fluttering/config/tsconfig.base.json"
+}

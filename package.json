@@ -1,0 +1,37 @@
+{
+  "name": "fluttering",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:native": "turbo -F native dev",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @fluttering/db db:push",
+    "db:studio": "turbo -F @fluttering/db db:studio",
+    "db:generate": "turbo -F @fluttering/db db:generate",
+    "db:migrate": "turbo -F @fluttering/db db:migrate",
+    "db:local": "turbo -F @fluttering/db db:local",
+    "check": "oxlint && oxfmt --write"
+  },
+  "dependencies": {
+    "@fluttering/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@fluttering/config": "workspace:*",
+    "@types/node": "catalog:",
+    "oxfmt": "^0.26.0",
+    "oxlint": "^1.41.0",
+    "turbo": "^2.6.3",
+    "typescript": "catalog:"
+  },
+  "packageManager": "pnpm@10.25.0"
+}

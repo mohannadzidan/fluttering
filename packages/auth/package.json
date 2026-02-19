@@ -1,0 +1,24 @@
+{
+  "name": "@fluttering/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@fluttering/db": "workspace:*",
+    "@fluttering/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@fluttering/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
