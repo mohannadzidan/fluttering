@@ -29,7 +29,7 @@
 
 **Purpose**: Create a safe rollback point before the destructive overwrite of existing component files.
 
-- [ ] T001 Commit current state of `apps/web/src/components/ui/` to branch `001-install-shadcn` as a safety checkpoint: `git add apps/web/src/components/ui/ && git commit -m "chore: snapshot ui components before shadcn full install"`
+- [x] T001 Commit current state of `apps/web/src/components/ui/` to branch `001-install-shadcn` as a safety checkpoint: `git add apps/web/src/components/ui/ && git commit -m "chore: snapshot ui components before shadcn full install"`
 
 **Checkpoint**: Safe rollback point established — `git checkout HEAD -- apps/web/src/components/ui/` can undo the overwrite if needed.
 
@@ -41,8 +41,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 Run `pnpm shadcn add --all --yes --overwrite` from `apps/web/` to install all standard shadcn/ui components into `apps/web/src/components/ui/` using the configured `base-lyra` style (overwrites existing 8 component files; auto-installs peer dependencies into `apps/web/package.json`)
-- [ ] T003 Run `pnpm install` from monorepo root to sync the newly added peer dependency entries in `apps/web/package.json` into `pnpm-lock.yaml` and `node_modules`
+- [x] T002 Run `pnpm shadcn add --all --yes --overwrite` from `apps/web/` to install all standard shadcn/ui components into `apps/web/src/components/ui/` using the configured `base-lyra` style (overwrites existing 8 component files; auto-installs peer dependencies into `apps/web/package.json`)
+- [x] T003 Run `pnpm install` from monorepo root to sync the newly added peer dependency entries in `apps/web/package.json` into `pnpm-lock.yaml` and `node_modules`
 
 **Checkpoint**: All component files present in `apps/web/src/components/ui/`; `pnpm-lock.yaml` updated.
 
@@ -56,8 +56,8 @@
 
 ### Implementation
 
-- [ ] T004 [US1] Run `pnpm -F web check-types` from monorepo root; fix any TypeScript errors in `apps/web/src/` caused by API shape changes in the overwritten components (`button.tsx`, `card.tsx`, `checkbox.tsx`, `dropdown-menu.tsx`, `input.tsx`, `label.tsx`, `skeleton.tsx`, `sonner.tsx`)
-- [ ] T005 [US1] Audit `apps/web/src/components/ui/` directory listing and confirm all standard shadcn/ui component files are present (accordion.tsx through tooltip.tsx); document any missing components in a comment at the top of `specs/001-install-shadcn/research.md`
+- [x] T004 [US1] Run `pnpm -F web check-types` from monorepo root; fix any TypeScript errors in `apps/web/src/` caused by API shape changes in the overwritten components (`button.tsx`, `card.tsx`, `checkbox.tsx`, `dropdown-menu.tsx`, `input.tsx`, `label.tsx`, `skeleton.tsx`, `sonner.tsx`)
+- [x] T005 [US1] Audit `apps/web/src/components/ui/` directory listing and confirm all standard shadcn/ui component files are present (accordion.tsx through tooltip.tsx); document any missing components in a comment at the top of `specs/001-install-shadcn/research.md`
 
 **Checkpoint**: `pnpm -F web check-types` exits with zero errors. All component files present. User Story 1 is fully functional.
 
@@ -71,9 +71,9 @@
 
 ### Implementation
 
-- [ ] T006 [US2] Inspect `apps/web/src/index.css` and confirm the full `:root` and `.dark` CSS variable blocks (--background, --foreground, --primary, --card, --sidebar-*, etc.) and `@import "shadcn/tailwind.css"` directive are still present and unmodified after installation
-- [ ] T007 [P] [US2] Audit `apps/web/src/components/ui/accordion.tsx`, `apps/web/src/components/ui/dialog.tsx`, and `apps/web/src/components/ui/select.tsx` to confirm each imports `cn` from `@/lib/utils` and applies Tailwind utility classes with CSS variable references (e.g., `bg-background`, `text-foreground`, `border-border`) rather than hardcoded colors
-- [ ] T008 [P] [US2] Audit `apps/web/src/components/ui/tabs.tsx` and `apps/web/src/components/ui/badge.tsx` to confirm they use `cn` from `@/lib/utils` and CSS variable-based classes consistent with the project theme
+- [x] T006 [US2] Inspect `apps/web/src/index.css` and confirm the full `:root` and `.dark` CSS variable blocks (--background, --foreground, --primary, --card, --sidebar-*, etc.) and `@import "shadcn/tailwind.css"` directive are still present and unmodified after installation
+- [x] T007 [P] [US2] Audit `apps/web/src/components/ui/accordion.tsx`, `apps/web/src/components/ui/dialog.tsx`, and `apps/web/src/components/ui/select.tsx` to confirm each imports `cn` from `@/lib/utils` and applies Tailwind utility classes with CSS variable references (e.g., `bg-background`, `text-foreground`, `border-border`) rather than hardcoded colors
+- [x] T008 [P] [US2] Audit `apps/web/src/components/ui/tabs.tsx` and `apps/web/src/components/ui/badge.tsx` to confirm they use `cn` from `@/lib/utils` and CSS variable-based classes consistent with the project theme
 
 **Checkpoint**: `index.css` CSS variables intact. Audited components use `@/lib/utils` `cn()` and CSS variable tokens. User Story 2 verified.
 
@@ -87,11 +87,11 @@
 
 ### Implementation
 
-- [ ] T009 [US3] Inspect `apps/web/src/components/sign-in-form.tsx` for prop compatibility with the overwritten `apps/web/src/components/ui/button.tsx`, `apps/web/src/components/ui/input.tsx`, `apps/web/src/components/ui/label.tsx`, and `apps/web/src/components/ui/checkbox.tsx`; update any broken prop usage to match the new component APIs
-- [ ] T010 [P] [US3] Inspect `apps/web/src/components/sign-up-form.tsx` for prop compatibility with the overwritten UI primitives; update any broken prop usage to match the new component APIs
-- [ ] T011 [P] [US3] Inspect `apps/web/src/components/user-menu.tsx` and `apps/web/src/components/header.tsx` for prop compatibility with the overwritten `apps/web/src/components/ui/dropdown-menu.tsx` and `apps/web/src/components/ui/button.tsx`; update any broken prop usage
-- [ ] T012 [P] [US3] Inspect `apps/web/src/components/loader.tsx` and `apps/web/src/routes/dashboard.tsx` for prop compatibility with the overwritten `apps/web/src/components/ui/skeleton.tsx` and `apps/web/src/components/ui/card.tsx`; update any broken prop usage
-- [ ] T013 [US3] Run `pnpm dev:web`, open `http://localhost:3001`, navigate to `/login` and any dashboard routes; confirm pages render without runtime console errors and that form submit, checkbox toggle, and dropdown menu interactions work as before
+- [x] T009 [US3] Inspect `apps/web/src/components/sign-in-form.tsx` for prop compatibility with the overwritten `apps/web/src/components/ui/button.tsx`, `apps/web/src/components/ui/input.tsx`, `apps/web/src/components/ui/label.tsx`, and `apps/web/src/components/ui/checkbox.tsx`; update any broken prop usage to match the new component APIs
+- [x] T010 [P] [US3] Inspect `apps/web/src/components/sign-up-form.tsx` for prop compatibility with the overwritten UI primitives; update any broken prop usage to match the new component APIs
+- [x] T011 [P] [US3] Inspect `apps/web/src/components/user-menu.tsx` and `apps/web/src/components/header.tsx` for prop compatibility with the overwritten `apps/web/src/components/ui/dropdown-menu.tsx` and `apps/web/src/components/ui/button.tsx`; update any broken prop usage
+- [x] T012 [P] [US3] Inspect `apps/web/src/components/loader.tsx` and `apps/web/src/routes/dashboard.tsx` for prop compatibility with the overwritten `apps/web/src/components/ui/skeleton.tsx` and `apps/web/src/components/ui/card.tsx`; update any broken prop usage
+- [x] T013 [US3] Run `pnpm dev:web`, open `http://localhost:3001`, navigate to `/login` and any dashboard routes; confirm pages render without runtime console errors and that form submit, checkbox toggle, and dropdown menu interactions work as before
 
 **Checkpoint**: All existing pages function correctly. User Stories 1, 2, and 3 are all independently verified.
 
@@ -101,8 +101,8 @@
 
 **Purpose**: Commit the final state and update documentation.
 
-- [ ] T014 [P] Commit all installed component files and dependency changes: `git add apps/web/src/components/ui/ apps/web/package.json pnpm-lock.yaml && git commit -m "feat: add all shadcn/ui standard components"`
-- [ ] T015 [P] Update `specs/001-install-shadcn/spec.md` header field `**Status**: Draft` → `**Status**: Complete`
+- [x] T014 [P] Commit all installed component files and dependency changes: `git add apps/web/src/components/ui/ apps/web/package.json pnpm-lock.yaml && git commit -m "feat: add all shadcn/ui standard components"`
+- [x] T015 [P] Update `specs/001-install-shadcn/spec.md` header field `**Status**: Draft` → `**Status**: Complete`
 
 ---
 
