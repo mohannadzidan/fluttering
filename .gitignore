@@ -12,6 +12,8 @@ build
 .env
 .env*.local
 
+test-results/
+playwright-report/
 # IDEs and editors
 .vscode/*
 !.vscode/settings.json

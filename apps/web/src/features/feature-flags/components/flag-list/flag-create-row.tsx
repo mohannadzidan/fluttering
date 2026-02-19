@@ -137,6 +137,7 @@ export function FlagCreateRow({
         mode="assign"
         trigger={
           <FlagElement
+            data-testid="type-picker-trigger"
             onClick={() => setTypePickerOpen(!typePickerOpen)}
             className="cursor-pointer hover:bg-accent/50"
           >

@@ -24,7 +24,9 @@
       "Bash(powershell.exe -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json -RequireTasks -IncludeTasks)",
       "Bash(npm run:*)",
       "Bash(pwsh -Command \"./.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks\")",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(powershell.exe -NonInteractive -Command \".specify/scripts/powershell/update-agent-context.ps1 -AgentType claude\")",
+      "Bash(powershell.exe -NonInteractive -Command \".specify/scripts/powershell/check-prerequisites.ps1 -Json\")"
     ]
   }
 }

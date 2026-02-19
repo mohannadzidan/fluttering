@@ -10,6 +10,10 @@ Auto-generated from all feature plans. Last updated: 2026-02-19
 - TypeScript 5.x, strict mode, no `any` + React 19.x, Zustand 5.x, Tailwind CSS v4, shadcn/ui, Lucide React, TanStack Router v1, `@dnd-kit/react` + `@dnd-kit/utilities` (new — drag-and-drop) (003-flag-groups)
 - TypeScript 5.x, strict mode, no `any` + React 19.x, Zustand 5.x, @dnd-kit/react (existing), @dnd-kit/helpers (may need install), shadcn/ui (Dialog, Command, Popover, Select — check which are already installed), Lucide React (existing) (004-enum-flag-types)
 - In-memory Zustand store only — no Prisma/SQLite changes (004-enum-flag-types)
+- [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION] (001-fix-e2e-tests)
+- [if applicable, e.g., PostgreSQL, CoreData, files or N/A] (001-fix-e2e-tests)
+- TypeScript 5.x, strict mode + Playwright (E2E), React 19.x, Zustand 5.x, `@base-ui/react` (Popover), cmdk (Command), shadcn/ui (Dialog, AlertDialog, Select) (001-fix-e2e-tests)
+- N/A — in-memory Zustand store only; resets on each fresh browser page (001-fix-e2e-tests)
 
 - TypeScript 5.x, strict mode + React 19.x, shadcn CLI 3.6.2, `@base-ui/react`, Tailwind CSS v4, `class-variance-authority`, `clsx`, `tailwind-merge`, `lucide-react` (001-install-shadcn)
 
@@ -30,15 +34,10 @@ npm test; npm run lint
 TypeScript 5.x, strict mode: Follow standard conventions
 
 ## Recent Changes
+- 001-fix-e2e-tests: Added TypeScript 5.x, strict mode + Playwright (E2E), React 19.x, Zustand 5.x, `@base-ui/react` (Popover), cmdk (Command), shadcn/ui (Dialog, AlertDialog, Select)
+- 001-fix-e2e-tests: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 - 004-enum-flag-types: Added TypeScript 5.x, strict mode, no `any` + React 19.x, Zustand 5.x, @dnd-kit/react (existing), @dnd-kit/helpers (may need install), shadcn/ui (Dialog, Command, Popover, Select — check which are already installed), Lucide React (existing)
-- 003-flag-groups: Added TypeScript 5.x, strict mode, no `any` + React 19.x, Zustand 5.x, Tailwind CSS v4, shadcn/ui, Lucide React, TanStack Router v1, `@dnd-kit/react` + `@dnd-kit/utilities` (new — drag-and-drop)
-- 003-flag-groups: Added TypeScript 5.x, strict mode, no `any` + React 19.x, Zustand 5.x, Tailwind CSS v4, shadcn/ui, Lucide React, TanStack Router v1
 
 
 <!-- MANUAL ADDITIONS START -->
-- you MUST use `pnpm` at all times, npm not allowed
-- you MUST always adhere to .specify/memory/constitution.md principles no matter what, they are NON-NEGOTIABLE
-- Always use Context7 MCP when you need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
-- use `pnpm -F web test` to run the tests of the frontend (it runs vitest command with the option `--run`, you can add any additional args or options to it as needed)
-- use `pnpm -F web lint` to check for linting issues
 <!-- MANUAL ADDITIONS END -->

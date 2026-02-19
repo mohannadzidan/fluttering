@@ -19,7 +19,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await manageTypesButton.click();
 
     // Wait for the type picker to appear
-    const typePicker = page.locator('[role="dialog"], [role="menu"]').filter({ hasText: 'Create new enum type' }).first();
+    const typePicker = page.locator('[data-slot="popover-content"]').first();
     await expect(typePicker).toBeVisible();
 
     // Click "Create new enum type…"
@@ -38,17 +38,17 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     const addValueButton = modal.locator('button:has-text("Add value")');
 
     // First value is pre-filled, clear and set to "production"
-    const firstValueInput = modal.locator('input').first();
+    const firstValueInput = modal.locator('input[placeholder="Value..."]').first();
     await firstValueInput.fill('production');
 
     // Add second value
     await addValueButton.click();
-    const secondValueInput = modal.locator('input').nth(1);
+    const secondValueInput = modal.locator('input[placeholder="Value..."]').nth(1);
     await secondValueInput.fill('staging');
 
     // Add third value
     await addValueButton.click();
-    const thirdValueInput = modal.locator('input').nth(2);
+    const thirdValueInput = modal.locator('input[placeholder="Value..."]').nth(2);
     await thirdValueInput.fill('development');
 
     // Save the enum type
@@ -60,7 +60,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
 
     // Verify the type now appears in the picker
     await manageTypesButton.click();
-    const updatedTypePicker = page.locator('[role="dialog"], [role="menu"]').filter({ hasText: 'Environment' }).first();
+    const updatedTypePicker = page.locator('[data-slot="popover-content"]').first();
     await expect(updatedTypePicker).toBeVisible();
 
     // Now create a new flag with this type
@@ -76,7 +76,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await flagNameInput.fill('MyEnumFlag');
 
     // Click "+ Type" or similar to open type picker
-    const flagTypeButton = page.locator('button:has-text("Type"), button:has-text("+ Type")').first();
+    const flagTypeButton = page.locator('[data-testid="type-picker-trigger"]').first();
     await flagTypeButton.click();
 
     // Select "Environment" enum type
@@ -87,13 +87,12 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await page.keyboard.press('Enter');
 
     // Verify the flag appears in the list with default value "production"
-    const flagRow = page.locator('text=MyEnumFlag').first();
+    const flagRow = page.locator('li').filter({ hasText: 'MyEnumFlag' }).first();
     await expect(flagRow).toBeVisible();
-    const productionValue = page.locator('text=production').filter({ near: flagRow }).first();
-    await expect(productionValue).toBeVisible();
 
     // Click the value control to open dropdown
-    const valueControl = page.locator('[role="combobox"], [role="button"]').filter({ near: flagRow }).filter({ hasText: /production|staging|development/ }).first();
+    const valueControl = flagRow.getByRole('combobox').first();
+    await expect(valueControl).toContainText('production');
     await valueControl.click();
 
     // Select "staging" from the dropdown
@@ -101,8 +100,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await stagingOption.click();
 
     // Verify the flag now shows "staging"
-    const stagingValueAfter = page.locator('text=staging').filter({ near: flagRow }).first();
-    await expect(stagingValueAfter).toBeVisible();
+    await expect(valueControl).toContainText('staging');
   });
 
   test('T020: Edit with value removal', async ({ page }) => {
@@ -118,15 +116,15 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await nameInput.fill('Status');
 
     const addValueButton = modal.locator('button:has-text("Add value")');
-    const firstValueInput = modal.locator('input').first();
+    const firstValueInput = modal.locator('input[placeholder="Value..."]').first();
     await firstValueInput.fill('active');
 
     await addValueButton.click();
-    const secondValueInput = modal.locator('input').nth(1);
+    const secondValueInput = modal.locator('input[placeholder="Value..."]').nth(1);
     await secondValueInput.fill('inactive');
 
     await addValueButton.click();
-    const thirdValueInput = modal.locator('input').nth(2);
+    const thirdValueInput = modal.locator('input[placeholder="Value..."]').nth(2);
     await thirdValueInput.fill('pending');
 
     const saveButton = modal.locator('button:has-text("Save")').last();
@@ -144,7 +142,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
       const flagNameInput = page.locator('input').first();
       await flagNameInput.fill(`StatusFlag${i}`);
 
-      const flagTypeButton = page.locator('button:has-text("Type"), button:has-text("+ Type")').first();
+      const flagTypeButton = page.locator('[data-testid="type-picker-trigger"]').first();
       await flagTypeButton.click();
 
       const statusTypeOption = page.locator('[role="option"]').filter({ hasText: 'Status' }).first();
@@ -155,10 +153,10 @@ test.describe('Enum Flag Types - E2E Tests', () => {
       await page.keyboard.press('Enter');
 
       // Wait for flag to appear and change value
-      const flagRow = page.locator('text=StatusFlag' + i).first();
+      const flagRow = page.locator('li').filter({ hasText: 'StatusFlag' + i }).first();
       await expect(flagRow).toBeVisible();
 
-      const valueControl = page.locator('[role="combobox"], [role="button"]').filter({ near: flagRow }).filter({ hasText: /active|inactive|pending/ }).first();
+      const valueControl = flagRow.getByRole('combobox').first();
       await valueControl.click();
 
       const inactiveOption = page.locator('[role="option"]').filter({ hasText: 'inactive' }).first();
@@ -170,13 +168,8 @@ test.describe('Enum Flag Types - E2E Tests', () => {
 
     // Find and click the edit icon for "Status" type
     const statusTypeItem = page.locator('[role="option"]').filter({ hasText: 'Status' }).first();
-    const editButton = statusTypeItem.locator('button, [role="button"]').filter({ hasText: 'Edit' }).first();
-    if (await editButton.isVisible()) {
-      await editButton.click();
-    } else {
-      // Try clicking pencil icon or similar
-      await statusTypeItem.locator('button').first().click();
-    }
+    const editButton = statusTypeItem.locator('button').first();
+    await editButton.click();
 
     // Edit modal should open
     const editModal = page.locator('[role="dialog"]').filter({ hasText: 'Edit enum type' }).first();
@@ -193,7 +186,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await savEditButton.click();
 
     // Confirmation dialog should appear asking about affected flags
-    const confirmDialog = page.locator('[role="dialog"], [role="alertdialog"]').filter({ hasText: /flag.*will be reset|Confirm/ }).first();
+    const confirmDialog = page.locator('[role="alertdialog"]').first();
     await expect(confirmDialog).toBeVisible();
 
     // Verify warning shows "2 flag(s)"
@@ -205,14 +198,14 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await confirmButton.click();
 
     // Verify both flags now show "active" (the new default)
-    const statusFlag1Row = page.locator('text=StatusFlag1').first();
-    const statusFlag2Row = page.locator('text=StatusFlag2').first();
+    const statusFlag1Row = page.locator('li').filter({ hasText: 'StatusFlag1' }).first();
+    const statusFlag2Row = page.locator('li').filter({ hasText: 'StatusFlag2' }).first();
 
-    const activeValue1 = page.locator('text=active').filter({ near: statusFlag1Row }).first();
-    const activeValue2 = page.locator('text=active').filter({ near: statusFlag2Row }).first();
+    const activeValue1 = statusFlag1Row.getByRole('combobox').first();
+    const activeValue2 = statusFlag2Row.getByRole('combobox').first();
 
-    await expect(activeValue1).toBeVisible();
-    await expect(activeValue2).toBeVisible();
+    await expect(activeValue1).toContainText('active');
+    await expect(activeValue2).toContainText('active');
   });
 
   test('T021: Delete with cascade', async ({ page }) => {
@@ -228,11 +221,11 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await nameInput.fill('Tier');
 
     const addValueButton = modal.locator('button:has-text("Add value")');
-    const firstValueInput = modal.locator('input').first();
+    const firstValueInput = modal.locator('input[placeholder="Value..."]').first();
     await firstValueInput.fill('gold');
 
     await addValueButton.click();
-    const secondValueInput = modal.locator('input').nth(1);
+    const secondValueInput = modal.locator('input[placeholder="Value..."]').nth(1);
     await secondValueInput.fill('silver');
 
     const saveButton = modal.locator('button:has-text("Save")').last();
@@ -249,7 +242,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
       const flagNameInput = page.locator('input').first();
       await flagNameInput.fill(`TierFlag${i}`);
 
-      const flagTypeButton = page.locator('button:has-text("Type"), button:has-text("+ Type")').first();
+      const flagTypeButton = page.locator('[data-testid="type-picker-trigger"]').first();
       await flagTypeButton.click();
 
       const tierTypeOption = page.locator('[role="option"]').filter({ hasText: 'Tier' }).first();
@@ -262,12 +255,8 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await manageTypesButton.click();
 
     const tierTypeItem = page.locator('[role="option"]').filter({ hasText: 'Tier' }).first();
-    const editButton = tierTypeItem.locator('button, [role="button"]').filter({ hasText: 'Edit' }).first();
-    if (await editButton.isVisible()) {
-      await editButton.click();
-    } else {
-      await tierTypeItem.locator('button').first().click();
-    }
+    const editButton = tierTypeItem.locator('button').first();
+    await editButton.click();
 
     const editModal = page.locator('[role="dialog"]').filter({ hasText: 'Edit enum type' }).first();
     await expect(editModal).toBeVisible();
@@ -277,7 +266,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await deleteButton.click();
 
     // Delete confirmation dialog should appear
-    const deleteConfirmDialog = page.locator('[role="dialog"], [role="alertdialog"]').filter({ hasText: /Delete|flag.*will.*delete/ }).first();
+    const deleteConfirmDialog = page.locator('[role="alertdialog"]').first();
     await expect(deleteConfirmDialog).toBeVisible();
 
     // Verify warning shows "3 flag(s)"
@@ -285,7 +274,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await expect(warningText).toBeVisible();
 
     // Confirm deletion
-    const confirmDeleteButton = deleteConfirmDialog.locator('button:has-text("Delete"), button:has-text("Confirm")').first();
+    const confirmDeleteButton = page.locator('[role="alertdialog"]').locator('button', { hasText: 'Delete' }).last();
     await confirmDeleteButton.click();
 
     // Verify "Tier" is gone from type picker
@@ -324,7 +313,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await expect(createButton).toBeDisabled();
 
     // Click "+ Type"
-    const typeButton = creationRow.locator('button:has-text("Type"), button:has-text("+ Type")').first();
+    const typeButton = page.locator('[data-testid="type-picker-trigger"]').first();
     await typeButton.click();
 
     // Select Boolean
@@ -352,7 +341,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
     await expect(createButton2).toBeDisabled();
 
     // First create an enum type to select
-    const typeButton2 = page.locator('button:has-text("Type"), button:has-text("+ Type")').first();
+    const typeButton2 = page.locator('[data-testid="type-picker-trigger"]').first();
     await typeButton2.click();
 
     // Create new enum type from the picker
@@ -364,7 +353,7 @@ test.describe('Enum Flag Types - E2E Tests', () => {
       const typeNameInput = typeModal.locator('input[placeholder="e.g. Environment"]');
       await typeNameInput.fill('TestType');
 
-      const typeValueInput = typeModal.locator('input').first();
+      const typeValueInput = typeModal.locator('input[placeholder="Value..."]').first();
       await typeValueInput.fill('value1');
 
       const typeSaveButton = typeModal.locator('button:has-text("Save")').last();
