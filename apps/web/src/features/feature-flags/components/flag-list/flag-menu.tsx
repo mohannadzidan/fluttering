@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { MoreHorizontal, Pencil, Trash2, Plus, LogOut } from "lucide-react";
 import type { AnyFlag } from "../../types";
 import {
@@ -7,10 +8,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { FlagMoveToMenu } from "./flag-move-to-menu";
+import { getDirectChildren } from "../../utils/flag-tree";
 
 interface FlagMenuProps {
   flag: AnyFlag;
   projectId: string;
+  allFlags?: AnyFlag[];
   onEdit: () => void;
   onDelete: () => void;
   onAddChild?: () => void;
@@ -24,12 +28,21 @@ interface FlagMenuProps {
 export function FlagMenu({
   flag,
   projectId,
+  allFlags = [],
   onEdit,
   onDelete,
   onAddChild,
   onDetach,
   onMoveTo,
 }: FlagMenuProps) {
+  const [showMoveMenu, setShowMoveMenu] = useState(false);
+
+  // Get eligible parent candidates (boolean flags, excluding current flag and its descendants)
+  const parentCandidates = allFlags.filter(
+    (f) =>
+      f.type === "boolean" && f.id !== flag.id
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -55,10 +68,29 @@ export function FlagMenu({
         )}
 
         {/* Move to parent (all flags) */}
-        {onMoveTo && (
-          <DropdownMenuItem className="cursor-pointer" onClick={(e) => e.stopPropagation()}>
+        {onMoveTo && !showMoveMenu && (
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onSelect={(e) => {
+              e.preventDefault();
+              setShowMoveMenu(true);
+            }}
+          >
             Move to…
           </DropdownMenuItem>
+        )}
+
+        {/* Move to menu - inline combobox */}
+        {showMoveMenu && onMoveTo && (
+          <div className="p-2">
+            <FlagMoveToMenu
+              candidates={parentCandidates}
+              onSelect={(parentId) => {
+                onMoveTo(parentId);
+                setShowMoveMenu(false);
+              }}
+            />
+          </div>
         )}
 
         {/* Detach from parent (only if has parent) */}

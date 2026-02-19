@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { useFeatureFlagsStore, useCollapsedFlagIds } from "../../hooks/use-flags-store";
 import { useProjectFlags, useSelectedProject } from "../../hooks/use-flags-store";
-import { buildRenderList } from "../../utils/flag-tree";
+import { buildRenderList, hasDescendant } from "../../utils/flag-tree";
 import { FlagRow } from "./flag-row";
 import { FlagCreateRow } from "./flag-create-row";
 import { FlagEditRow } from "./flag-edit-row";
@@ -44,6 +45,30 @@ export function FlagList() {
     setFlagParent(selectedProjectId, flagId, parentId);
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const draggedFlagId = active.id as string;
+    const targetFlagId = over.id as string;
+
+    // Find the target flag
+    const targetFlag = flags.find((f) => f.id === targetFlagId);
+
+    // Validation: target must be boolean type and not a descendant of the dragged flag
+    if (
+      !targetFlag ||
+      targetFlag.type !== "boolean" ||
+      hasDescendant(flags, draggedFlagId, targetFlagId)
+    ) {
+      return; // Silently reject
+    }
+
+    // Set the parent
+    setFlagParent(selectedProjectId, draggedFlagId, targetFlagId);
+  };
+
   return (
     <div className="flex flex-col gap-4 p-4">
       {!hasFlags && !isCreating ? (
@@ -56,7 +81,8 @@ export function FlagList() {
       ) : null}
 
       {hasFlags || isCreating ? (
-        <ul className="flex flex-col gap-2">
+        <DndContext onDragEnd={handleDragEnd}>
+          <ul className="flex flex-col gap-2">
           {renderList.map((node) =>
             editingFlagId === node.flag.id ? (
               <FlagEditRow
@@ -71,6 +97,7 @@ export function FlagList() {
                 key={node.flag.id}
                 flag={node.flag}
                 projectId={selectedProjectId}
+                allFlags={flags}
                 depth={node.depth}
                 hasChildren={node.hasChildren}
                 isLastChild={node.isLastChild}
@@ -101,7 +128,8 @@ export function FlagList() {
               }}
             />
           )}
-        </ul>
+          </ul>
+        </DndContext>
       ) : null}
 
       {/* "Add new flag..." button */}

@@ -16,7 +16,8 @@
       "Bash(powershell.exe -File \".specify/scripts/powershell/setup-plan.ps1\" -Json)",
       "Bash(powershell.exe -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json)",
       "Bash(powershell -Command \"& ''./.specify/scripts/powershell/check-prerequisites.ps1'' -Json -RequireTasks -IncludeTasks\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

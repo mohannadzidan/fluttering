@@ -1,4 +1,6 @@
 import { CalendarClock, CalendarPlus, ChevronDown, ChevronRight } from "lucide-react";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { AnyFlag } from "../../types";
@@ -11,6 +13,7 @@ import { FlagConnector } from "./flag-connector";
 interface FlagRowProps {
   flag: AnyFlag;
   projectId: string;
+  allFlags?: AnyFlag[];
   depth: number;
   hasChildren: boolean;
   isLastChild: boolean;
@@ -38,6 +41,7 @@ function FlagElementContainer({ children }: { children: React.ReactNode }) {
 export function FlagRow({
   flag,
   projectId,
+  allFlags = [],
   depth,
   hasChildren,
   isLastChild,
@@ -52,6 +56,22 @@ export function FlagRow({
 }: FlagRowProps) {
   const toggleFlagValue = useFeatureFlagsStore((state) => state.toggleFlagValue);
 
+  // DnD hooks
+  const { attributes, listeners, setNodeRef: setDraggableRef, transform, isDragging } = useDraggable({
+    id: flag.id,
+  });
+
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: flag.id,
+    disabled: flag.type !== "boolean",
+  });
+
+  // Merge both refs
+  const ref = (node: HTMLLIElement | null) => {
+    setDraggableRef(node);
+    setDroppableRef(node);
+  };
+
   const handleToggle = () => {
     toggleFlagValue(projectId, flag.id);
   };
@@ -60,9 +80,15 @@ export function FlagRow({
 
   return (
     <li
-      className="flex items-stretch gap-4 px-1 py-1 relative rounded-full group"
+      ref={ref}
+      {...attributes}
+      {...listeners}
+      className={`flex items-stretch gap-4 px-1 py-1 relative rounded-full group transition-opacity ${
+        isDragging ? "opacity-50" : ""
+      } ${isOver && flag.type === "boolean" ? "bg-accent" : ""}`}
       style={{
         marginLeft: `${leftPadding}px`,
+        transform: CSS.Transform.toString(transform),
       }}
     >
       {/* Tree connector for non-root flags */}
@@ -139,6 +165,7 @@ export function FlagRow({
         <FlagMenu
           flag={flag}
           projectId={projectId}
+          allFlags={allFlags}
           onEdit={onEdit}
           onDelete={onDelete}
           onAddChild={onAddChild}
