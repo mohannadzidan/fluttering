@@ -11,7 +11,12 @@
       "Bash(powershell.exe -File \".specify/scripts/powershell/create-new-feature.ps1\" -Json \"$FEATURE_DESC\" -Number 2 -ShortName \"feature-flags\")",
       "Bash(powershell.exe -File \".specify/scripts/powershell/update-agent-context.ps1\" -AgentType claude)",
       "Bash(powershell -NoProfile -ExecutionPolicy Bypass -Command \"./.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(powershell.exe -File \".specify/scripts/powershell/create-new-feature.ps1\" -Json -Number 3 -ShortName \"flag-groups\" \"Support nested flag groups with dashed elbow border visualization\")",
+      "Bash(powershell.exe -File \".specify/scripts/powershell/setup-plan.ps1\" -Json)",
+      "Bash(powershell.exe -File \".specify/scripts/powershell/check-prerequisites.ps1\" -Json)",
+      "Bash(powershell -Command \"& ''./.specify/scripts/powershell/check-prerequisites.ps1'' -Json -RequireTasks -IncludeTasks\")",
+      "Bash(git add:*)"
     ]
   }
 }

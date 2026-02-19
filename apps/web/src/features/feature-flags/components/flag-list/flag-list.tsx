@@ -1,27 +1,48 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useFeatureFlagsStore } from "../../hooks/use-flags-store";
+import { useFeatureFlagsStore, useCollapsedFlagIds } from "../../hooks/use-flags-store";
 import { useProjectFlags, useSelectedProject } from "../../hooks/use-flags-store";
+import { buildRenderList } from "../../utils/flag-tree";
 import { FlagRow } from "./flag-row";
 import { FlagCreateRow } from "./flag-create-row";
 import { FlagEditRow } from "./flag-edit-row";
 
 /**
- * Display the list of flags for the currently selected project.
- * Shows each flag as a FlagRow, or an empty state if no flags exist.
+ * Display the list of flags for the currently selected project as a tree hierarchy.
+ * Shows each flag as a FlagRow with tree indentation and connectors, or an empty state.
  * Includes "Add new flag..." button and inline creation form.
- * Supports inline editing and deletion.
+ * Supports inline editing, deletion, and reparenting via tree structure.
  */
 export function FlagList() {
   const selectedProjectId = useSelectedProject();
   const flags = useProjectFlags();
+  const collapsedFlagIds = useCollapsedFlagIds();
   const deleteFlag = useFeatureFlagsStore((state) => state.deleteFlag);
+  const setFlagParent = useFeatureFlagsStore((state) => state.setFlagParent);
+  const toggleFlagCollapsed = useFeatureFlagsStore((state) => state.toggleFlagCollapsed);
 
   const [isCreating, setIsCreating] = useState(false);
+  const [creatingParentId, setCreatingParentId] = useState<string | null>(null);
   const [editingFlagId, setEditingFlagId] = useState<string | null>(null);
 
   const hasFlags = flags.length > 0;
+
+  // Build render list from flat flags array with collapse support
+  const renderList = buildRenderList(flags, collapsedFlagIds);
+
+  const handleAddChild = (parentId: string) => {
+    setCreatingParentId(parentId);
+    setIsCreating(true);
+  };
+
+  const handleDetach = (flagId: string) => {
+    setFlagParent(selectedProjectId, flagId, null);
+  };
+
+  const handleMoveTo = (flagId: string, parentId: string) => {
+    setFlagParent(selectedProjectId, flagId, parentId);
+  };
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -36,22 +57,31 @@ export function FlagList() {
 
       {hasFlags || isCreating ? (
         <ul className="flex flex-col gap-2">
-          {flags.map((flag) =>
-            editingFlagId === flag.id ? (
+          {renderList.map((node) =>
+            editingFlagId === node.flag.id ? (
               <FlagEditRow
-                key={flag.id}
-                flag={flag}
+                key={node.flag.id}
+                flag={node.flag}
                 projectId={selectedProjectId}
                 onDone={() => setEditingFlagId(null)}
                 onCancel={() => setEditingFlagId(null)}
               />
             ) : (
               <FlagRow
-                key={flag.id}
-                flag={flag}
+                key={node.flag.id}
+                flag={node.flag}
                 projectId={selectedProjectId}
-                onEdit={() => setEditingFlagId(flag.id)}
-                onDelete={() => deleteFlag(selectedProjectId, flag.id)}
+                depth={node.depth}
+                hasChildren={node.hasChildren}
+                isLastChild={node.isLastChild}
+                ancestorIsLastChild={node.ancestorIsLastChild}
+                isCollapsed={collapsedFlagIds.has(node.flag.id)}
+                onEdit={() => setEditingFlagId(node.flag.id)}
+                onDelete={() => deleteFlag(selectedProjectId, node.flag.id)}
+                onAddChild={() => handleAddChild(node.flag.id)}
+                onDetach={() => handleDetach(node.flag.id)}
+                onToggleCollapse={() => toggleFlagCollapsed(node.flag.id)}
+                onMoveTo={(parentId) => handleMoveTo(node.flag.id, parentId)}
               />
             )
           )}
@@ -60,8 +90,15 @@ export function FlagList() {
             <FlagCreateRow
               key={`create-${selectedProjectId}`}
               projectId={selectedProjectId}
-              onDone={() => setIsCreating(false)}
-              onCancel={() => setIsCreating(false)}
+              parentId={creatingParentId}
+              onDone={() => {
+                setIsCreating(false);
+                setCreatingParentId(null);
+              }}
+              onCancel={() => {
+                setIsCreating(false);
+                setCreatingParentId(null);
+              }}
             />
           )}
         </ul>
@@ -72,7 +109,10 @@ export function FlagList() {
         variant="outline"
         size="sm"
         className="w-full"
-        onClick={() => setIsCreating(true)}
+        onClick={() => {
+          setCreatingParentId(null);
+          setIsCreating(true);
+        }}
         disabled={isCreating}
       >
         <Plus className="mr-2 h-4 w-4" />

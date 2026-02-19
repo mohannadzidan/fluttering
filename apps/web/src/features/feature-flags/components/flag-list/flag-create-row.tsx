@@ -3,6 +3,7 @@ import { useFeatureFlagsStore } from "../../hooks/use-flags-store";
 
 interface FlagCreateRowProps {
   projectId: string;
+  parentId?: string | null;
   onDone: () => void;
   onCancel: () => void;
 }
@@ -11,8 +12,14 @@ interface FlagCreateRowProps {
  * Inline form row for creating a new flag.
  * Auto-focused text input for flag name.
  * Confirms on Enter (validates name), cancels on Escape.
+ * Optionally creates the flag as a child of a parent flag.
  */
-export function FlagCreateRow({ projectId, onDone, onCancel }: FlagCreateRowProps) {
+export function FlagCreateRow({
+  projectId,
+  parentId = null,
+  onDone,
+  onCancel,
+}: FlagCreateRowProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const addFlag = useFeatureFlagsStore((state) => state.addFlag);
 
@@ -32,8 +39,8 @@ export function FlagCreateRow({ projectId, onDone, onCancel }: FlagCreateRowProp
         return;
       }
 
-      // Create the flag
-      addFlag(projectId, name, "boolean");
+      // Create the flag with optional parentId
+      addFlag(projectId, name, "boolean", parentId);
       onDone();
     } else if (e.key === "Escape") {
       e.preventDefault();

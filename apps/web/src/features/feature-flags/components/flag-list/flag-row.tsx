@@ -1,4 +1,4 @@
-import { CalendarClock, CalendarPlus } from "lucide-react";
+import { CalendarClock, CalendarPlus, ChevronDown, ChevronRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { AnyFlag } from "../../types";
@@ -6,31 +6,73 @@ import { formatFlagTime } from "../../utils/format-time";
 import { useFeatureFlagsStore } from "../../hooks/use-flags-store";
 import { FlagTypeIcon } from "../flag-type-icon";
 import { FlagMenu } from "./flag-menu";
+import { FlagConnector } from "./flag-connector";
 
 interface FlagRowProps {
   flag: AnyFlag;
   projectId: string;
+  depth: number;
+  hasChildren: boolean;
+  isLastChild: boolean;
+  ancestorIsLastChild: boolean[];
+  isCollapsed: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onAddChild?: () => void;
+  onDetach?: () => void;
+  onToggleCollapse?: () => void;
+  onMoveTo?: (parentId: string) => void;
 }
+
+const INDENT_UNIT = 24; // pixels per indentation level
 
 function FlagElementContainer({ children }: { children: React.ReactNode }) {
   return <div className="border rounded-full px-2 bg-card flex items-center z-1  group-hover:border-primary gap-2">{children}</div>;
 }
+
 /**
  * Display a single flag as a horizontal row.
- * Shows name, type icon, toggle switch, timestamps, and menu button.
+ * Shows name, type icon, collapse toggle (if parent), toggle switch, timestamps, and menu button.
+ * Supports tree hierarchy with indentation and connectors.
  */
-export function FlagRow({ flag, projectId, onEdit, onDelete }: FlagRowProps) {
+export function FlagRow({
+  flag,
+  projectId,
+  depth,
+  hasChildren,
+  isLastChild,
+  ancestorIsLastChild,
+  isCollapsed,
+  onEdit,
+  onDelete,
+  onAddChild,
+  onDetach,
+  onToggleCollapse,
+  onMoveTo,
+}: FlagRowProps) {
   const toggleFlagValue = useFeatureFlagsStore((state) => state.toggleFlagValue);
 
   const handleToggle = () => {
     toggleFlagValue(projectId, flag.id);
   };
 
+  const leftPadding = depth * INDENT_UNIT;
+
   return (
-    <li className="flex items-stretch gap-4 px-1 py-1 relative rounded-full group">
-      <div className="h-1/2 absolute left-4 right-12 top-0 border-b border-dashed z-0 group-hover:border-primary group-hover:border-solid" />
+    <li
+      className="flex items-stretch gap-4 px-1 py-1 relative rounded-full group"
+      style={{
+        marginLeft: `${leftPadding}px`,
+      }}
+    >
+      {/* Tree connector for non-root flags */}
+      {depth > 0 && (
+        <FlagConnector
+          depth={depth}
+          isLastChild={isLastChild}
+          ancestorIsLastChild={ancestorIsLastChild}
+        />
+      )}
 
       {/* Flag name with tooltip */}
       <FlagElementContainer>
@@ -46,6 +88,23 @@ export function FlagRow({ flag, projectId, onEdit, onDelete }: FlagRowProps) {
           </TooltipContent>
         </Tooltip>
       </FlagElementContainer>
+
+      {/* Collapse toggle (if parent) */}
+      {hasChildren && (
+        <FlagElementContainer>
+          <button
+            onClick={onToggleCollapse}
+            className="inline-flex items-center justify-center p-0 hover:bg-accent rounded"
+            aria-label={isCollapsed ? "Expand" : "Collapse"}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </button>
+        </FlagElementContainer>
+      )}
 
       {/* Spacer */}
       <div className="flex-1 " />
@@ -75,9 +134,17 @@ export function FlagRow({ flag, projectId, onEdit, onDelete }: FlagRowProps) {
         </div>
       </FlagElementContainer>
 
-      {/* Menu button with Edit and Delete actions */}
+      {/* Menu button with Edit, Add Child, Move To, and Delete actions */}
       <FlagElementContainer>
-        <FlagMenu onEdit={onEdit} onDelete={onDelete} />
+        <FlagMenu
+          flag={flag}
+          projectId={projectId}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onAddChild={onAddChild}
+          onDetach={onDetach}
+          onMoveTo={onMoveTo}
+        />
       </FlagElementContainer>
     </li>
   );
