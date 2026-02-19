@@ -19,9 +19,9 @@
 
 **Purpose**: Ensure required packages are present and the new component sub-folder exists.
 
-- [ ] T001 Check if `@dnd-kit/helpers` is installed (`pnpm list @dnd-kit/helpers`); if missing, install it with `pnpm add @dnd-kit/helpers --filter @fluttering/web`
-- [ ] T002 Check which shadcn/ui components are not yet installed (Dialog, AlertDialog, Command, Popover, Select); install any missing via `pnpm dlx shadcn@latest add <name>` from `apps/web/`
-- [ ] T003 [P] Create the `components/enum-types/` directory (it can remain empty for now — will be populated in Phase 3)
+- [x] T001 Check if `@dnd-kit/helpers` is installed (`pnpm list @dnd-kit/helpers`); if missing, install it with `pnpm add @dnd-kit/helpers --filter @fluttering/web`
+- [x] T002 Check which shadcn/ui components are not yet installed (Dialog, AlertDialog, Command, Popover, Select); install any missing via `pnpm dlx shadcn@latest add <name>` from `apps/web/`
+- [x] T003 [P] Create the `components/enum-types/` directory (it can remain empty for now — will be populated in Phase 3)
 
 ---
 
