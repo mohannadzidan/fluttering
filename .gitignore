@@ -7,7 +7,7 @@ node_modules
 dist
 build
 *.tsbuildinfo
-
+*.db
 # Environment variables
 .env
 .env*.local
