@@ -14,6 +14,9 @@ interface FlagRowProps {
   onDelete: () => void;
 }
 
+function FlagElementContainer({ children }: { children: React.ReactNode }) {
+  return <div className="border rounded-full px-2 bg-card flex items-center z-1  group-hover:border-primary gap-2">{children}</div>;
+}
 /**
  * Display a single flag as a horizontal row.
  * Shows name, type icon, toggle switch, timestamps, and menu button.
@@ -26,46 +29,56 @@ export function FlagRow({ flag, projectId, onEdit, onDelete }: FlagRowProps) {
   };
 
   return (
-    <li className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3">
-      {/* Type icon */}
-      <FlagTypeIcon type={flag.type} className="h-4 w-4 text-cosmic" />
+    <li className="flex items-stretch gap-4 px-1 py-1 relative rounded-full group">
+      <div className="h-1/2 absolute left-4 right-12 top-0 border-b border-dashed z-0 group-hover:border-primary group-hover:border-solid" />
 
       {/* Flag name with tooltip */}
-      <Tooltip>
-        <TooltipTrigger>
-          <span className="max-w-[200px] truncate text-sm font-medium text-foreground">
-            {flag.name}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          <span className="text-xs">{flag.name}</span>
-        </TooltipContent>
-      </Tooltip>
+      <FlagElementContainer>
+        <FlagTypeIcon type={flag.type} className="h-4 w-4 text-cosmic" />
+        <Tooltip>
+          <TooltipTrigger>
+            <span className="max-w-50 truncate text-sm font-medium text-foreground">
+              {flag.name}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <span className="text-xs">{flag.name}</span>
+          </TooltipContent>
+        </Tooltip>
+      </FlagElementContainer>
 
       {/* Spacer */}
-      <div className="flex-1" />
+      <div className="flex-1 " />
 
       {/* Toggle switch */}
-      <Switch
-        checked={flag.type === "boolean" ? flag.value : false}
-        onCheckedChange={handleToggle}
-        aria-label={`Toggle ${flag.name}`}
-      />
+      <FlagElementContainer>
+        <Switch
+          checked={flag.type === "boolean" ? flag.value : false}
+          onCheckedChange={handleToggle}
+          aria-label={`Toggle ${flag.name}`}
+        />
+      </FlagElementContainer>
 
       {/* Created timestamp */}
-      <div className="flex items-center gap-2 w-24">
-        <CalendarPlus className="h-4 w-4 text-muted-foreground" />
-        <span className="text-xs text-radiate">{formatFlagTime(flag.createdAt)}</span>
-      </div>
+      <FlagElementContainer>
+        <div className="flex items-center gap-2 w-24">
+          <CalendarPlus className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs text-radiate">{formatFlagTime(flag.createdAt)}</span>
+        </div>
+      </FlagElementContainer>
 
       {/* Updated timestamp */}
-      <div className="flex items-center gap-2 w-24">
-        <CalendarClock className="h-4 w-4 text-muted-foreground" />
-        <span className="text-xs text-radiate">{formatFlagTime(flag.updatedAt)}</span>
-      </div>
+      <FlagElementContainer>
+        <div className="flex items-center gap-2 w-24">
+          <CalendarClock className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs text-radiate">{formatFlagTime(flag.updatedAt)}</span>
+        </div>
+      </FlagElementContainer>
 
       {/* Menu button with Edit and Delete actions */}
-      <FlagMenu onEdit={onEdit} onDelete={onDelete} />
+      <FlagElementContainer>
+        <FlagMenu onEdit={onEdit} onDelete={onDelete} />
+      </FlagElementContainer>
     </li>
   );
 }
