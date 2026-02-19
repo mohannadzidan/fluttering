@@ -14,4 +14,7 @@ export default defineConfig({
   server: {
     port: 3001,
   },
+  test: {
+    exclude: ["node_modules", "dist", ".idea", ".git", ".cache", "e2e"],
+  },
 });

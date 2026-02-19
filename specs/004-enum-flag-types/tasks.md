@@ -147,11 +147,11 @@
 
 **Purpose**: Cover all critical user journeys. These tests verify the integrated behavior that unit tests cannot cover.
 
-- [ ] T019 [P] Write Playwright E2E test in `apps/web/e2e/` (or wherever existing E2E tests live): **Full creation flow** — open "Manage Types" → create enum type "Environment" with values ["production", "staging", "development"] → create new flag, assign "Environment" type → verify flag shows "production" (default) → click value selector → pick "staging" → verify "staging" is shown
-- [ ] T020 [P] Write Playwright E2E test: **Edit with value removal** — create enum type "Status" with ["active", "inactive", "pending"] → create 2 flags set to "inactive" → edit "Status", remove "inactive" → confirm warning shows "2 flag(s)" → save → both flags now show "active"
-- [ ] T021 [P] Write Playwright E2E test: **Delete with cascade** — create enum type "Tier" used by 3 flags → open edit modal → delete → confirm warning shows "3 flag(s)" → verify "Tier" is gone from type picker and all 3 flags are removed from the flag list
-- [ ] T022 [P] Write Playwright E2E test: **Inline creation row gates** — click "Add new flag…" → Create button is disabled → type a flag name → still disabled → click "+ Type" → select Boolean → Create enables → press Enter → flag appears → repeat with an enum type selection
-- [ ] T023 [P] Write Playwright E2E test: **Escape and click-outside dismissal** — open creation row → type a partial name → press Escape → row disappears, no flag created → open again → click outside the row → row disappears, no flag created
+- [x] T019 [P] Write Playwright E2E test in `apps/web/e2e/` (or wherever existing E2E tests live): **Full creation flow** — open "Manage Types" → create enum type "Environment" with values ["production", "staging", "development"] → create new flag, assign "Environment" type → verify flag shows "production" (default) → click value selector → pick "staging" → verify "staging" is shown
+- [x] T020 [P] Write Playwright E2E test: **Edit with value removal** — create enum type "Status" with ["active", "inactive", "pending"] → create 2 flags set to "inactive" → edit "Status", remove "inactive" → confirm warning shows "2 flag(s)" → save → both flags now show "active"
+- [x] T021 [P] Write Playwright E2E test: **Delete with cascade** — create enum type "Tier" used by 3 flags → open edit modal → delete → confirm warning shows "3 flag(s)" → verify "Tier" is gone from type picker and all 3 flags are removed from the flag list
+- [x] T022 [P] Write Playwright E2E test: **Inline creation row gates** — click "Add new flag…" → Create button is disabled → type a flag name → still disabled → click "+ Type" → select Boolean → Create enables → press Enter → flag appears → repeat with an enum type selection
+- [x] T023 [P] Write Playwright E2E test: **Escape and click-outside dismissal** — open creation row → type a partial name → press Escape → row disappears, no flag created → open again → click outside the row → row disappears, no flag created
 
 ---
 
