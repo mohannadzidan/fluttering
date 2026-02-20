@@ -31,13 +31,7 @@ function SortableValueRow({
   const { ref, handleRef, isDragging } = useSortable({ id: item.id, index });
 
   return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex items-center gap-2",
-        isDragging && "opacity-40"
-      )}
-    >
+    <div ref={ref} className={cn("flex items-center gap-2", isDragging && "opacity-40")}>
       {/* Drag handle */}
       <button
         ref={handleRef}
@@ -54,6 +48,7 @@ function SortableValueRow({
         onChange={(e) => onValueChange(item.id, e.target.value)}
         placeholder="Value..."
         className="flex-1 h-7 text-xs"
+        data-testid="enum-type-value-input"
       />
 
       {/* Default badge */}
@@ -72,6 +67,7 @@ function SortableValueRow({
         disabled={!canRemove}
         aria-label="Remove value"
         className="shrink-0"
+        data-testid="enum-type-remove-value-button"
       >
         <X className="h-3.5 w-3.5" />
       </Button>
@@ -92,9 +88,7 @@ interface EnumValueListProps {
  */
 export function EnumValueList({ items, onItemsChange }: EnumValueListProps) {
   const handleValueChange = (id: string, newValue: string) => {
-    onItemsChange(
-      items.map((item) => (item.id === id ? { ...item, value: newValue } : item))
-    );
+    onItemsChange(items.map((item) => (item.id === id ? { ...item, value: newValue } : item)));
   };
 
   const handleRemove = (id: string) => {

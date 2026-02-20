@@ -126,6 +126,7 @@ export function FlagCreateRow({
         ref={inputRef}
         type="text"
         placeholder="Flag name..."
+        data-testid="create-flag-name-input"
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={handleKeyDown}

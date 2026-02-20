@@ -76,7 +76,7 @@ export function TypePicker({ mode, trigger, onSelect }: TypePickerProps) {
         {/* Pass the caller-supplied trigger element via the `render` prop */}
         <PopoverTrigger render={trigger} />
 
-        <PopoverContent className="w-56 p-0" align="start">
+        <PopoverContent className="w-56 p-0" align="start" data-testid="type-picker-popover">
           <Command>
             <CommandInput placeholder="Search types…" />
             <CommandList>
@@ -143,7 +143,7 @@ export function TypePicker({ mode, trigger, onSelect }: TypePickerProps) {
 
               {/* ── Create new enum type ── */}
               <CommandGroup>
-                <CommandItem onSelect={handleOpenCreateModal}>
+                <CommandItem onSelect={handleOpenCreateModal} data-testid="create-enum-type-item">
                   <Plus className="text-muted-foreground" />
                   Create new enum type…
                 </CommandItem>

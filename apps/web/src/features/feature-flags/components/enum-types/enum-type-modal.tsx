@@ -21,7 +21,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFeatureFlagsStore } from "../../hooks/use-flags-store";
-import { isNameUnique, areValuesUnique, getAffectedFlagsByValue, getAffectedFlagCount } from "../../utils/enum-type";
+import {
+  isNameUnique,
+  areValuesUnique,
+  getAffectedFlagsByValue,
+  getAffectedFlagCount,
+} from "../../utils/enum-type";
 import { EnumValueList, type ValueItem } from "./enum-value-list";
 import type { EnumType } from "../../types";
 
@@ -62,12 +67,7 @@ interface EnumTypeModalProps {
  * - Save / Cancel footer buttons
  * - Delete button (edit mode only)
  */
-export function EnumTypeModal({
-  open,
-  onOpenChange,
-  enumType,
-  onCreated
-}: EnumTypeModalProps) {
+export function EnumTypeModal({ open, onOpenChange, enumType, onCreated }: EnumTypeModalProps) {
   const enumTypes = useFeatureFlagsStore((state) => state.enumTypes);
   const flags = useFeatureFlagsStore((state) => state.flags);
   const createEnumType = useFeatureFlagsStore((state) => state.createEnumType);
@@ -80,7 +80,7 @@ export function EnumTypeModal({
   const [items, setItems] = useState<ValueItem[]>(
     enumType?.values.map((value) => ({ id: crypto.randomUUID(), value })) ?? [
       { id: crypto.randomUUID(), value: "" },
-    ]
+    ],
   );
   const [nameError, setNameError] = useState<string | null>(null);
   const [valuesError, setValuesError] = useState<string | null>(null);
@@ -96,7 +96,7 @@ export function EnumTypeModal({
     setItems(
       enumType?.values.map((value) => ({ id: crypto.randomUUID(), value })) ?? [
         { id: crypto.randomUUID(), value: "" },
-      ]
+      ],
     );
     setNameError(null);
     setValuesError(null);
@@ -190,52 +190,53 @@ export function EnumTypeModal({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent
+          className="sm:max-w-sm"
+          data-testid="enum-type-modal"
+          data-mode={onCreated ? "create" : "edit"}
+        >
           <DialogHeader>
             <DialogTitle>{isEditMode ? "Edit enum type" : "Create enum type"}</DialogTitle>
           </DialogHeader>
 
-        <div className="flex flex-col gap-4">
-          {/* Name field */}
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="enum-type-name" className="text-xs">
-              Name
-            </Label>
-            <Input
-              id="enum-type-name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (nameError) setNameError(null);
-              }}
-              placeholder="e.g. Environment"
-              className="h-7 text-xs"
-              autoFocus
-            />
-            {nameError && (
-              <p className="text-xs text-destructive">{nameError}</p>
-            )}
-          </div>
+          <div className="flex flex-col gap-4">
+            {/* Name field */}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="enum-type-name" className="text-xs">
+                Name
+              </Label>
+              <Input
+                id="enum-type-name"
+                data-testid="enum-type-name-input"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (nameError) setNameError(null);
+                }}
+                placeholder="e.g. Environment"
+                className="h-7 text-xs"
+                autoFocus
+              />
+              {nameError && <p className="text-xs text-destructive">{nameError}</p>}
+            </div>
 
-          {/* Values */}
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs">Values</Label>
-            <EnumValueList items={items} onItemsChange={setItems} />
-            {valuesError && (
-              <p className="text-xs text-destructive">{valuesError}</p>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleAddValue}
-              className="mt-1 w-full"
-            >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Add value
-            </Button>
+            {/* Values */}
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-xs">Values</Label>
+              <EnumValueList items={items} onItemsChange={setItems} />
+              {valuesError && <p className="text-xs text-destructive">{valuesError}</p>}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddValue}
+                className="mt-1 w-full"
+              >
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Add value
+              </Button>
+            </div>
           </div>
-        </div>
 
           <DialogFooter>
             {isEditMode && (
@@ -266,21 +267,23 @@ export function EnumTypeModal({
       </Dialog>
 
       {/* Value Removal Confirmation Dialog */}
-      <AlertDialog open={valueRemovalAlert !== null} onOpenChange={() => setValueRemovalAlert(null)}>
+      <AlertDialog
+        open={valueRemovalAlert !== null}
+        onOpenChange={() => setValueRemovalAlert(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm value removal</AlertDialogTitle>
             <AlertDialogDescription>
               Removing "{valueRemovalAlert?.removedValue}" will reset{" "}
-              {valueRemovalAlert?.affectedCount} flag{valueRemovalAlert?.affectedCount !== 1 ? "s" : ""} to "
+              {valueRemovalAlert?.affectedCount} flag
+              {valueRemovalAlert?.affectedCount !== 1 ? "s" : ""} to "
               {valueRemovalAlert?.newDefaultValue}". Continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmValueRemoval}>
-              Remove value
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmValueRemoval}>Remove value</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -291,13 +294,14 @@ export function EnumTypeModal({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete enum type?</AlertDialogTitle>
             <AlertDialogDescription>
-              {enumType && (() => {
-                const affectedCount = getAffectedFlagCount(enumType.id, flags);
-                if (affectedCount === 0) {
-                  return "Delete this enum type? This cannot be undone.";
-                }
-                return `${affectedCount} flag${affectedCount !== 1 ? "s" : ""} use${affectedCount === 1 ? "s" : ""} this type. Deleting it will also delete those flags. This cannot be undone.`;
-              })()}
+              {enumType &&
+                (() => {
+                  const affectedCount = getAffectedFlagCount(enumType.id, flags);
+                  if (affectedCount === 0) {
+                    return "Delete this enum type? This cannot be undone.";
+                  }
+                  return `${affectedCount} flag${affectedCount !== 1 ? "s" : ""} use${affectedCount === 1 ? "s" : ""} this type. Deleting it will also delete those flags. This cannot be undone.`;
+                })()}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
