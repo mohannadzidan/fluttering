@@ -8,6 +8,7 @@ import type { trpc } from "@/utils/trpc";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import Header from "@/components/header";
 
 import "../index.css";
 
@@ -47,8 +48,11 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        <div className="h-svh">
-          <Outlet />
+        <div className="h-svh flex flex-col">
+          <Header />
+          <div className="flex-1 overflow-hidden">
+            <Outlet />
+          </div>
         </div>
         <Toaster richColors />
       </ThemeProvider>

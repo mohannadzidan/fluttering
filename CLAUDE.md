@@ -14,6 +14,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-19
 - [if applicable, e.g., PostgreSQL, CoreData, files or N/A] (001-fix-e2e-tests)
 - TypeScript 5.x, strict mode + Playwright (E2E), React 19.x, Zustand 5.x, `@base-ui/react` (Popover), cmdk (Command), shadcn/ui (Dialog, AlertDialog, Select) (001-fix-e2e-tests)
 - N/A — in-memory Zustand store only; resets on each fresh browser page (001-fix-e2e-tests)
+- TypeScript 5.x strict mode, no `any` + React 19.x, Better Auth (existing), TanStack Router v1, TanStack Form (existing), TanStack Query v5, Zod (existing), shadcn/ui (existing), Lucide React (existing) (005-email-password-auth)
+- SQLite via Prisma — schema already complete, no migrations required (005-email-password-auth)
 
 - TypeScript 5.x, strict mode + React 19.x, shadcn CLI 3.6.2, `@base-ui/react`, Tailwind CSS v4, `class-variance-authority`, `clsx`, `tailwind-merge`, `lucide-react` (001-install-shadcn)
 
@@ -34,9 +36,9 @@ npm test; npm run lint
 TypeScript 5.x, strict mode: Follow standard conventions
 
 ## Recent Changes
+- 005-email-password-auth: Added TypeScript 5.x strict mode, no `any` + React 19.x, Better Auth (existing), TanStack Router v1, TanStack Form (existing), TanStack Query v5, Zod (existing), shadcn/ui (existing), Lucide React (existing)
 - 001-fix-e2e-tests: Added TypeScript 5.x, strict mode + Playwright (E2E), React 19.x, Zustand 5.x, `@base-ui/react` (Popover), cmdk (Command), shadcn/ui (Dialog, AlertDialog, Select)
 - 001-fix-e2e-tests: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
-- 004-enum-flag-types: Added TypeScript 5.x, strict mode, no `any` + React 19.x, Zustand 5.x, @dnd-kit/react (existing), @dnd-kit/helpers (may need install), shadcn/ui (Dialog, Command, Popover, Select — check which are already installed), Lucide React (existing)
 
 
 <!-- MANUAL ADDITIONS START -->

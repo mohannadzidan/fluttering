@@ -9,10 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "../utils/auth-client";
 
-import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function UserMenu() {
   const navigate = useNavigate();
@@ -25,7 +25,9 @@ export default function UserMenu() {
   if (!session) {
     return (
       <Link to="/login">
-        <Button variant="outline">Sign In</Button>
+        <Button variant="outline" data-testid="sign-in-link">
+          Sign In
+        </Button>
       </Link>
     );
   }
@@ -33,7 +35,7 @@ export default function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <Button variant="outline">
+        <Button variant="outline" data-testid="user-menu-trigger">
           {session.user.name}
         </Button>
       </DropdownMenuTrigger>
@@ -44,6 +46,7 @@ export default function UserMenu() {
           <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
+            data-testid="sign-out-button"
             onClick={() => {
               authClient.signOut({
                 fetchOptions: {

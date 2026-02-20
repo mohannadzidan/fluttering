@@ -3,12 +3,12 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "../utils/auth-client";
 
-import Loader from "./loader";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import Loader from "@/components/loader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
   const navigate = useNavigate({
@@ -76,6 +76,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  data-testid="sign-in-email-input"
                 />
                 {field.state.meta.errors.map((error) => (
                   <p key={error?.message} className="text-red-500">
@@ -99,6 +100,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  data-testid="sign-in-password-input"
                 />
                 {field.state.meta.errors.map((error) => (
                   <p key={error?.message} className="text-red-500">
@@ -116,6 +118,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
               type="submit"
               className="w-full"
               disabled={!state.canSubmit || state.isSubmitting}
+              data-testid="sign-in-submit-button"
             >
               {state.isSubmitting ? "Submitting..." : "Sign In"}
             </Button>
@@ -128,6 +131,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
           variant="link"
           onClick={onSwitchToSignUp}
           className="text-indigo-600 hover:text-indigo-800"
+          data-testid="sign-up-toggle-button"
         >
           Need an account? Sign Up
         </Button>
